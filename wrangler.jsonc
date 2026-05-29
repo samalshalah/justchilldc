@@ -1,0 +1,48 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "chill-prodgit-storefront",
+	"account_id": "caec7682bc164ce85d6c3361871409a0",
+	"main": ".open-next/worker.js",
+	"compatibility_date": "2026-04-29",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"services": [
+		{
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "chill-prodgit-storefront"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "MEDIA_BUCKET",
+			"bucket_name": "chill-prodgit-media"
+		},
+		{
+			"binding": "NEXT_INC_CACHE_R2_BUCKET",
+			"bucket_name": "chill-prodgit-next-cache"
+		}
+	],
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "51faa845214f460daa182820b9cdb9f4",
+			"localConnectionString": "postgres://preview:preview@127.0.0.1:5432/preview"
+		}
+	],
+	"vars": {
+		"NEXT_PUBLIC_SITE_URL": "https://chill.prodgt.com",
+		"LOCAL_PREVIEW_MODE": "0"
+	},
+	"routes": [
+		{
+			"pattern": "chill.prodgt.com/*",
+			"zone_name": "prodgt.com"
+		}
+	]
+}

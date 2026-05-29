@@ -1,0 +1,8 @@
+NEXTJS_ENV=development
+NEXT_PUBLIC_SITE_URL=https://example.com
+ADMIN_PASSWORD=change-me-before-launch
+
+# Use DATABASE_URL for local Next dev and schema pushes.
+# In deployed Workers, prefer the HYPERDRIVE binding in wrangler.jsonc.
+DATABASE_URL=postgres://user:pass@host:5432/dbname
+LOCAL_PREVIEW_MODE=1
