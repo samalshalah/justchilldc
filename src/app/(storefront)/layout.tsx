@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Clock3, LockKeyhole, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { LockKeyhole, MapPin, Phone } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { getBrands, getCategories, getProducts } from "@/lib/data";
 import { SettingsProvider } from "@/components/SettingsProvider";
@@ -128,13 +128,16 @@ function ComingSoonLanding({
 }) {
   const displayMessage =
     message?.trim() ||
-    "Our online menu is being prepared now. Inventory, categories, and checkout will be available here shortly.";
+    "Our site is currently under maintenance. Please check back soon.";
   const logoUrl = logoPath ? `/api/storage${logoPath}` : null;
+  const mapsUrl = address
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+    : null;
 
   return (
     <main className="min-h-screen bg-[#07120d] text-white">
       <div className="min-h-screen bg-[linear-gradient(135deg,#07120d_0%,#0f2118_52%,#09100d_100%)]">
-        <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-5 py-5 sm:px-8">
+        <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-5 py-5 sm:px-8">
           <header className="flex items-center justify-between gap-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
               {logoUrl ? (
@@ -161,80 +164,41 @@ function ComingSoonLanding({
             </a>
           </header>
 
-          <section className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1.08fr_0.92fr] lg:py-16">
+          <section className="flex flex-1 flex-col items-center justify-center py-14 text-center">
             <div className="max-w-3xl">
               <p className="mb-5 text-sm font-semibold uppercase tracking-[0.24em] text-[#d8b95a]">
-                Online menu opening soon
+                Site under maintenance
               </p>
               <h1 className="max-w-4xl text-4xl font-bold leading-[1.03] text-white sm:text-6xl lg:text-7xl">
-                {storeName} is getting the menu ready.
+                We will be back soon.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
+              <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/72 sm:text-xl">
                 {displayMessage}
               </p>
-
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                {phone ? (
-                  <a
-                    href={`tel:${phone}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#d8b95a] px-5 py-3 text-sm font-bold text-[#07120d] transition-transform hover:-translate-y-0.5"
-                  >
-                    <Phone className="h-4 w-4" aria-hidden="true" />
-                    Call the store
-                  </a>
-                ) : null}
-                {address ? (
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/18 px-5 py-3 text-sm font-bold text-white transition-colors hover:border-[#d8b95a]/70"
-                  >
-                    <MapPin className="h-4 w-4" aria-hidden="true" />
-                    Get directions
-                  </a>
-                ) : null}
-              </div>
             </div>
 
-            <aside className="rounded-xl border border-white/12 bg-white/[0.04] p-5 shadow-2xl shadow-black/30 backdrop-blur">
-              <div className="border-b border-white/10 pb-5">
-                <div className="flex items-center gap-3 text-[#f1d77d]">
-                  <Clock3 className="h-5 w-5" aria-hidden="true" />
-                  <h2 className="text-xl font-semibold text-white">
-                    Launch status
-                  </h2>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-white/64">
-                  We are finishing inventory setup before opening the online
-                  shopping experience.
-                </p>
-              </div>
-
-              <div className="space-y-4 py-5">
-                {[
-                  "Store information connected",
-                  "Inventory import in progress",
-                  "SEO pages preparing",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <span className="h-2.5 w-2.5 rounded-full bg-[#d8b95a]" />
-                    <span className="text-sm font-medium text-white/78">
-                      {item}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-start gap-3 rounded-lg bg-black/20 p-4 text-sm leading-6 text-white/66">
-                <ShieldCheck
-                  className="mt-0.5 h-5 w-5 shrink-0 text-[#d8b95a]"
-                  aria-hidden="true"
-                />
-                <p>
-                  For adults 21+ with valid ID. Please consume responsibly and
-                  follow all local laws.
-                </p>
-              </div>
-            </aside>
+            <div className="mt-10 grid w-full max-w-2xl gap-3 sm:grid-cols-2">
+              {mapsUrl && address ? (
+                <a
+                  href={mapsUrl}
+                  className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] p-5 text-white transition-colors hover:border-[#d8b95a]/70"
+                >
+                  <MapPin className="mb-3 h-5 w-5 text-[#d8b95a]" aria-hidden="true" />
+                  <span className="text-sm font-semibold">Google Maps</span>
+                  <span className="mt-2 text-sm leading-6 text-white/68">{address}</span>
+                </a>
+              ) : null}
+              {phone ? (
+                <a
+                  href={`tel:${phone}`}
+                  className="flex min-h-28 flex-col items-center justify-center rounded-xl border border-white/12 bg-white/[0.04] p-5 text-white transition-colors hover:border-[#d8b95a]/70"
+                >
+                  <Phone className="mb-3 h-5 w-5 text-[#d8b95a]" aria-hidden="true" />
+                  <span className="text-sm font-semibold">Phone</span>
+                  <span className="mt-2 text-sm leading-6 text-white/68">{phone}</span>
+                </a>
+              ) : null}
+            </div>
           </section>
         </div>
       </div>

@@ -18,10 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const storeName = settings.store?.name || DEFAULTS.storeName;
 
   if (settings.maintenance_mode) {
-    const title = `Coming Soon | ${storeName}`;
+    const title = `Site Maintenance | ${storeName}`;
     const description =
       settings.maintenance_message ||
-      "The online menu is being prepared now. Please check back shortly.";
+      "The site is currently under maintenance. Please check back soon.";
 
     return {
       title: { absolute: title },

@@ -68,7 +68,7 @@ export function AdvancedForm({
             rows={3}
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
-            placeholder="Our online menu is being prepared now. Inventory, categories, and checkout will be available here shortly."
+            placeholder="Our site is currently under maintenance. Please check back soon."
           />
         </Field>
       </section>
