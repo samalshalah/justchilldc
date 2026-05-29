@@ -62,7 +62,7 @@ export function Navbar({ shopNav }: { shopNav?: ShopNavData }) {
   const storeName = settings.store?.name || DEFAULTS.storeName;
   const megaImageUrl = settings.homepage_sections?.hero?.bannerImageUrl
     ? `/api/storage${settings.homepage_sections.hero.bannerImageUrl}`
-    : "/images/about-interior.webp";
+    : "/images/store/store-interior-mural.webp";
 
   const headerCfg = settings.header_config;
   const showCta = headerCfg?.show_cta ?? false;

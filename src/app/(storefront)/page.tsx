@@ -94,7 +94,7 @@ export default async function HomePage() {
   const heroOverlay = HERO_OVERLAYS[settings.homepage_theme ?? "theme1"] ?? HERO_OVERLAYS.theme1;
   const heroBgUrl = sec.hero?.bannerImageUrl
     ? `/api/storage${sec.hero.bannerImageUrl}`
-    : "/images/hero-bg.webp";
+    : "/images/store/store-exterior-mural.webp";
   const heroBgUnoptimized = isStorageImageUrl(heroBgUrl);
 
   const categoriesWithCounts = categories.map((cat) => ({
@@ -360,7 +360,7 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
             <Image
-              src="/images/about-interior.webp"
+              src="/images/store/store-interior-mural.webp"
               alt="Store interior"
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"

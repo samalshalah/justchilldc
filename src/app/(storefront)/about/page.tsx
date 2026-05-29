@@ -49,7 +49,7 @@ export default async function AboutPage() {
   ];
   const storyImageUrl = about.imageUrl
     ? `/api/storage${about.imageUrl}`
-    : "/images/about-interior.webp";
+    : "/images/store/store-interior-mural.webp";
 
   return (
     <>
