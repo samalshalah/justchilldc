@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import { ArrowRight, MapPin, Phone, ShoppingBag } from "lucide-react";
 import { getProducts } from "@/lib/data";
 import { getSiteSettings } from "@/lib/settings";
-import { getLocalSeoPageBySlug, getLocalSeoPages } from "@/lib/local-seo-pages";
+import { getLocalSeoPageBySlug } from "@/lib/local-seo-pages";
 import { DEFAULTS } from "@/lib/defaults";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -27,11 +30,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
     },
   };
-}
-
-export async function generateStaticParams() {
-  const settings = await getSiteSettings();
-  return getLocalSeoPages(settings).map((page) => ({ slug: page.slug }));
 }
 
 export default async function LocalSeoAreaPage({ params }: Props) {
