@@ -27,6 +27,7 @@ This project is prepared for Cloudflare Workers through OpenNext.
 - `wrangler.jsonc` is configured for the temporary `chill.prodgt.com` launch domain.
 - `open-next.config.ts` configures the OpenNext Cloudflare adapter.
 - `public/_headers` defines baseline security headers.
+- `.github/workflows/deploy-cloudflare.yml` deploys `main` to Cloudflare after the `CLOUDFLARE_API_TOKEN` GitHub repository secret is added.
 
 Update all placeholder names in `wrangler.jsonc` before deploying.
 
