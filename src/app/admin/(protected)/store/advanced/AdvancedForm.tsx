@@ -56,19 +56,19 @@ export function AdvancedForm({
       >
         <h2 className="font-semibold text-zinc-200 flex items-center gap-2">
           <AlertTriangle className={`w-4 h-4 ${mm ? "text-amber-500" : "text-zinc-500"}`} />
-          Maintenance Mode
+          Coming Soon / Launch Mode
         </h2>
         <Checkbox
-          label="Show maintenance page to all visitors (admin still accessible)"
+          label="Show coming soon page to visitors while the store is being set up"
           checked={mm}
           onChange={(e) => setMM(e.target.checked)}
         />
-        <Field label="Maintenance message">
+        <Field label="Coming soon message">
           <Textarea
             rows={3}
             value={msg}
             onChange={(e) => setMsg(e.target.value)}
-            placeholder="We're upgrading our systems. Back shortly!"
+            placeholder="Our online menu is being prepared now. Inventory, categories, and checkout will be available here shortly."
           />
         </Field>
       </section>

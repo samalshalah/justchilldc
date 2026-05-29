@@ -16,6 +16,22 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const seo = settings.seo ?? {};
   const storeName = settings.store?.name || DEFAULTS.storeName;
+
+  if (settings.maintenance_mode) {
+    const title = `Coming Soon | ${storeName}`;
+    const description =
+      settings.maintenance_message ||
+      "The online menu is being prepared now. Please check back shortly.";
+
+    return {
+      title: { absolute: title },
+      description,
+      alternates: { canonical: "/" },
+      openGraph: { title, description, url: "/" },
+      robots: { index: false, follow: false },
+    };
+  }
+
   const city = seo.city || DEFAULTS.city;
 
   const titleRaw = seo.page_home?.title || seo.title_template || DEFAULTS.seoTitleTemplate;
