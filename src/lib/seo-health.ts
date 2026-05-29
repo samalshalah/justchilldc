@@ -1,6 +1,8 @@
 import { DEFAULTS } from "./defaults";
 import type { Brand, Category, Product } from "./data";
 import type { SiteSettings } from "./types";
+import { getLocalSeoPages } from "./local-seo-pages";
+import { isStaleGeneratedSeoCopy } from "./seo-generator";
 
 export type SeoHealthStatus = "good" | "warning" | "missing";
 
@@ -34,6 +36,10 @@ export function buildSeoHealthReport(input: {
   const store = settings.store ?? {};
   const seo = settings.seo ?? {};
   const location = settings.location ?? {};
+  const staleProductCount = products.filter((p) =>
+    isStaleGeneratedSeoCopy(p.description)
+  ).length;
+  const localSeoPageCount = getLocalSeoPages(settings).length;
 
   const items: SeoHealthItem[] = [
     {
@@ -88,14 +94,22 @@ export function buildSeoHealthReport(input: {
       label: "Product descriptions",
       detail: products.length === 0
         ? "No products to check yet."
-        : `${products.filter((p) => hasValue(p.description)).length}/${products.length} products have descriptions.`,
+        : staleProductCount > 0
+        ? `${staleProductCount}/${products.length} products still contain generic white-label SEO copy.`
+        : `${products.filter((p) => hasValue(p.description)).length}/${products.length} products have localized descriptions.`,
       status:
         products.length === 0
           ? "warning"
-          : products.every((p) => hasValue(p.description))
+          : products.every((p) => hasValue(p.description)) && staleProductCount === 0
           ? "good"
           : "warning",
       href: "/admin/products",
+    },
+    {
+      label: "Local SEO pages",
+      detail: `${localSeoPageCount} hidden service-area pages are available for sitemap indexing.`,
+      status: localSeoPageCount >= 5 ? "good" : "warning",
+      href: "/sitemap.xml",
     },
     {
       label: "Categories",

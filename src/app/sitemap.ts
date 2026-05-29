@@ -3,6 +3,7 @@ import { getCategories, getProducts } from "@/lib/data";
 import { getSiteSettings } from "@/lib/settings";
 import { categoryPath } from "@/lib/url";
 import { getBlogPosts } from "@/lib/blog";
+import { getLocalSeoPages } from "@/lib/local-seo-pages";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -66,5 +67,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Blog table may not exist before the first schema push.
   }
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...blogRoutes];
+  const localSeoRoutes: MetadataRoute.Sitemap = getLocalSeoPages(settings).map((page) => ({
+    url: `${baseUrl}/areas/${page.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly",
+    priority: 0.55,
+  }));
+
+  return [
+    ...staticRoutes,
+    ...categoryRoutes,
+    ...productRoutes,
+    ...blogRoutes,
+    ...localSeoRoutes,
+  ];
 }

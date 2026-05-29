@@ -32,6 +32,30 @@ export interface SeoContext {
   legalModelName?: string;
 }
 
+function resolveLegalModelName(ctx: SeoContext): string {
+  const explicit = ctx.legalModelName?.trim();
+  const generic = [
+    DEFAULTS.legalModelName,
+    "local compliance model",
+    "applicable local regulations",
+  ].map((value) => value.toLowerCase());
+
+  if (explicit && !generic.includes(explicit.toLowerCase())) {
+    return explicit;
+  }
+
+  const city = ctx.city || DEFAULTS.city;
+  const state = ctx.state || DEFAULTS.state;
+  const place =
+    city === DEFAULTS.city && state === DEFAULTS.state
+      ? "local"
+      : state
+      ? `${city}, ${state}`
+      : city;
+
+  return `${place} cannabis compliance requirements`;
+}
+
 function hashString(s: string): number {
   let h = 5381;
   for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
@@ -231,7 +255,7 @@ export function generateSeoDescription(
   const storeName = ctx.storeName || DEFAULTS.storeName;
   const city = ctx.city || DEFAULTS.city;
   const state = ctx.state || DEFAULTS.state;
-  const legalModelName = ctx.legalModelName || DEFAULTS.legalModelName;
+  const legalModelName = resolveLegalModelName(ctx);
   const display = seoTitleCase(product.name);
   const category = product.category || "Flower";
   const type = product.strainType;
@@ -312,7 +336,7 @@ export function generateProductPageSeoCopy(
   const storeName = ctx.storeName || DEFAULTS.storeName;
   const city = ctx.city || DEFAULTS.city;
   const state = ctx.state || DEFAULTS.state;
-  const legalModelName = ctx.legalModelName || DEFAULTS.legalModelName;
+  const legalModelName = resolveLegalModelName(ctx);
   const display = seoTitleCase(product.name);
   const category = product.category || "product";
   const categoryLower = category.toLowerCase();
@@ -406,7 +430,10 @@ export function generateCategorySeoDescription(input: {
   const category = input.category || "Products";
   const storeName = input.storeName || DEFAULTS.storeName;
   const city = input.city || DEFAULTS.city;
-  const legalModelName = input.legalModelName || DEFAULTS.legalModelName;
+  const legalModelName = resolveLegalModelName({
+    city,
+    legalModelName: input.legalModelName,
+  });
   return `Shop ${category.toLowerCase()} at ${storeName} in ${city}. Browse live inventory, compare product details, and place a local order under the ${legalModelName}.`;
 }
 

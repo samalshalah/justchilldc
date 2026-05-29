@@ -9,6 +9,44 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+function renderContentBlock(block: string, idx: number) {
+  const text = block.trim();
+  if (text.startsWith("### ")) {
+    return (
+      <h3 key={idx} className="mb-3 mt-8 text-2xl font-bold text-foreground">
+        {text.replace(/^###\s+/, "")}
+      </h3>
+    );
+  }
+  if (text.startsWith("## ")) {
+    return (
+      <h2 key={idx} className="mb-4 mt-10 text-3xl font-bold text-foreground">
+        {text.replace(/^##\s+/, "")}
+      </h2>
+    );
+  }
+  if (text.startsWith("- ")) {
+    const items = text
+      .split(/\n+/)
+      .map((line) => line.replace(/^-\s+/, "").trim())
+      .filter(Boolean);
+    return (
+      <ul key={idx} className="mb-6 list-disc space-y-2 pl-6 text-muted-foreground">
+        {items.map((item) => (
+          <li key={item} className="leading-8">
+            {item}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return (
+    <p key={idx} className="mb-5 leading-8 text-muted-foreground">
+      {text}
+    </p>
+  );
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const [{ slug }, settings] = await Promise.all([params, getSiteSettings()]);
   const post = await getBlogPostBySlug(slug);
@@ -78,11 +116,7 @@ export default async function BlogPostPage({ params }: Props) {
         </header>
         <div className="container mx-auto px-4 max-w-3xl py-10">
           <div className="prose prose-invert max-w-none">
-            {post.content.split(/\n{2,}/).map((paragraph, idx) => (
-              <p key={idx} className="text-muted-foreground leading-8 mb-5">
-                {paragraph}
-              </p>
-            ))}
+            {post.content.split(/\n{2,}/).map(renderContentBlock)}
           </div>
         </div>
       </article>
