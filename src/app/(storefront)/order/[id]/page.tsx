@@ -6,6 +6,7 @@ import { getOrderById } from "@/lib/data";
 import type { OrderItem } from "@/lib/schema/orderItems";
 import { getSiteSettings } from "@/lib/settings";
 import { DEFAULTS } from "@/lib/defaults";
+import { complianceFooterText } from "@/lib/compliance";
 
 export const metadata: Metadata = {
   title: "Order Confirmed",
@@ -137,7 +138,7 @@ export default async function OrderConfirmationPage({
           <ul className="list-disc pl-5 space-y-0.5">
             <li>Bring valid government-issued ID (must be 21+)</li>
             <li>{DEFAULTS.cashOnlyNotice}</li>
-            <li>{DEFAULTS.checkoutFooter}</li>
+            <li>{complianceFooterText(settings)}</li>
           </ul>
         </div>
 

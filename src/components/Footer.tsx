@@ -14,6 +14,7 @@ import {
 import { useSettings } from "./SettingsProvider";
 import { DEFAULTS } from "@/lib/defaults";
 import { isStorageImageUrl } from "@/lib/images";
+import { complianceFooterText } from "@/lib/compliance";
 import type { WeekDay } from "@/lib/types";
 
 const DAY_LABELS: Record<WeekDay, string> = {
@@ -304,7 +305,7 @@ export function Footer() {
           </p>
           {showDisclaimer && (
             <p className="text-center md:text-right">
-              {DEFAULTS.checkoutFooter} · For adults 21+ only
+              {complianceFooterText(settings)} · For adults 21+ only
             </p>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { DEFAULTS } from "./defaults";
+import { complianceModelName } from "./compliance";
 import type { SiteSettings } from "./types";
 
 interface FaqItem {
@@ -15,7 +16,7 @@ export function buildCategoryFaqs(
   const pickupEnabled = settings.ordering?.pickup_enabled ?? true;
   const deliveryEnabled = settings.ordering?.delivery_enabled ?? false;
   const minOrder = settings.checkout_config?.min_order_amount;
-  const legalModelName = DEFAULTS.legalModelName;
+  const legalModelName = complianceModelName(settings);
 
   const orderMethod = deliveryEnabled
     ? "pickup or delivery"

@@ -4,6 +4,7 @@ import { getProducts, getCategories, getBrands } from "@/lib/data";
 import { resolveShopConfig } from "@/lib/shop-config";
 import { ShopClient } from "@/components/ShopClient";
 import { DEFAULTS } from "@/lib/defaults";
+import { complianceModelName } from "@/lib/compliance";
 
 export async function generateMetadata({
   searchParams,
@@ -78,7 +79,7 @@ export default async function ShopPage({
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
             {config.subtitle ||
-              `Curated premium products from ${storeName}, available under the ${DEFAULTS.legalModelName}.`}
+              `Curated premium products from ${storeName}, available under ${complianceModelName(settings)}.`}
           </p>
         </div>
       </section>

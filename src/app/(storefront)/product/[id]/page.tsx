@@ -15,6 +15,7 @@ import {
 } from "@/lib/images";
 import { resolvePdpConfig } from "@/lib/shop-config";
 import { DEFAULTS } from "@/lib/defaults";
+import { complianceFooterText } from "@/lib/compliance";
 import { getProductFeelings } from "@/lib/product-facets";
 import {
   generateProductPageSeoCopy,
@@ -515,7 +516,7 @@ export default async function ProductDetailPage({
 
               <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1">
                 <Info className="w-3 h-3" />
-                {DEFAULTS.checkoutFooter}
+                {complianceFooterText(settings)}
               </p>
 
               {showTrustBadges && (

@@ -5,6 +5,7 @@ import { Leaf, Users, Award, ArrowRight } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { DEFAULTS } from "@/lib/defaults";
 import { isStorageImageUrl } from "@/lib/images";
+import { complianceModelName } from "@/lib/compliance";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -22,11 +23,12 @@ export default async function AboutPage() {
   const settings = await getSiteSettings();
   const about = settings.about ?? {};
   const storeName = settings.store?.name || DEFAULTS.storeName;
+  const city = settings.location?.city || settings.seo?.city || DEFAULTS.city;
 
   const headline = about.headline || "Cultivating a Better Local Retail Experience";
   const content =
     about.content ||
-    `${storeName} was founded with one mission: to make local ordering feel simple, polished, and trustworthy in ${DEFAULTS.city}. We curate premium products, provide clear information, and operate under the ${DEFAULTS.legalModelName}.`;
+    `${storeName} was founded with one mission: to make local ordering feel simple, polished, and trustworthy in ${city}. We curate premium products, provide clear information, and operate under ${complianceModelName(settings)}.`;
   const mission =
     about.mission ||
     "To provide every customer with a reliable, welcoming, and well-informed shopping experience.";
