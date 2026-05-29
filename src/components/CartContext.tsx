@@ -22,6 +22,7 @@ export interface CartItem {
   donation: number;
   imageUrl: string | null;
   imageType: string;
+  brandLogoUrl?: string | null;
   quantity: number;
 }
 

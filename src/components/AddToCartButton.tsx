@@ -23,6 +23,7 @@ export function AddToCartButton({ product }: { product: Product }) {
         donation: product.donation,
         imageUrl: product.imageUrl,
         imageType: product.imageType,
+        brandLogoUrl: product.brandLogoUrl ?? null,
       },
       quantity
     );

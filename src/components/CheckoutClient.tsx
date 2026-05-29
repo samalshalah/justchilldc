@@ -18,7 +18,12 @@ import {
 } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useSettings } from "./SettingsProvider";
-import { isStorageImageUrl, productImageUrl } from "@/lib/images";
+import {
+  isProductLogoFallback,
+  isStorageImageUrl,
+  productImageFitClass,
+  productImageUrl,
+} from "@/lib/images";
 import { generatePickupSlots } from "@/lib/pickup-slots";
 import { computeBestDeal } from "@/lib/deal-engine";
 import type { StoreHoursConfig } from "@/lib/types";
@@ -186,20 +191,32 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
                   const imageUrl = productImageUrl({
                     imageUrl: item.imageUrl,
                     imageType: item.imageType,
+                    brandLogoUrl: item.brandLogoUrl,
                   });
+                  const imageInput = {
+                    imageUrl: item.imageUrl,
+                    imageType: item.imageType,
+                    brandLogoUrl: item.brandLogoUrl,
+                  };
                   return (
                     <div
                       key={item.productId}
                       className="flex items-center gap-4 p-4 bg-card rounded-2xl border border-border/50"
                     >
-                      <div className="relative w-16 h-16 shrink-0 rounded-lg overflow-hidden bg-background">
+                      <div
+                        className={`relative w-16 h-16 shrink-0 overflow-hidden rounded-lg ${
+                          isProductLogoFallback(imageInput)
+                            ? "bg-white"
+                            : "bg-background"
+                        }`}
+                      >
                         <Image
                           src={imageUrl}
                           alt={item.name}
                           fill
                           sizes="64px"
                           unoptimized={isStorageImageUrl(imageUrl)}
-                          className="object-cover"
+                          className={productImageFitClass(imageInput, "p-2")}
                         />
                       </div>
                       <div className="flex-1 min-w-0">

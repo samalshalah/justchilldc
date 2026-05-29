@@ -7,7 +7,7 @@
  */
 
 import "server-only";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, getTableColumns } from "drizzle-orm";
 import {
   db,
   productsTable,
@@ -24,7 +24,10 @@ import {
   getPreviewProducts,
 } from "./preview-data";
 
-export type Product = typeof productsTable.$inferSelect;
+export type Product = typeof productsTable.$inferSelect & {
+  brandLogoUrl?: string | null;
+  brandName?: string | null;
+};
 export type Category = typeof categoriesTable.$inferSelect;
 export type Brand = typeof brandsTable.$inferSelect;
 export type Order = typeof ordersTable.$inferSelect;
@@ -43,15 +46,24 @@ export async function getProducts(opts: {
       conditions.push(eq(productsTable.featured, opts.featured));
     if (opts.inStockOnly) conditions.push(eq(productsTable.inStock, true));
 
+    const productColumns = getTableColumns(productsTable);
+    const selectColumns = {
+      ...productColumns,
+      brandLogoUrl: brandsTable.logoUrl,
+      brandName: brandsTable.name,
+    };
+
     const rows = conditions.length
       ? await db
-          .select()
+          .select(selectColumns)
           .from(productsTable)
+          .leftJoin(brandsTable, eq(productsTable.brandId, brandsTable.id))
           .where(and(...conditions))
           .orderBy(desc(productsTable.createdAt))
       : await db
-          .select()
+          .select(selectColumns)
           .from(productsTable)
+          .leftJoin(brandsTable, eq(productsTable.brandId, brandsTable.id))
           .orderBy(desc(productsTable.createdAt));
     return rows;
   } catch (err) {
@@ -65,8 +77,13 @@ export async function getProductById(id: number): Promise<Product | null> {
   if (isLocalPreviewMode()) return getPreviewProductById(id);
   try {
     const [row] = await db
-      .select()
+      .select({
+        ...getTableColumns(productsTable),
+        brandLogoUrl: brandsTable.logoUrl,
+        brandName: brandsTable.name,
+      })
       .from(productsTable)
+      .leftJoin(brandsTable, eq(productsTable.brandId, brandsTable.id))
       .where(eq(productsTable.id, id))
       .limit(1);
     return row ?? null;

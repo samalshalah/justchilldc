@@ -292,14 +292,13 @@ export function ProductForm({ categories, brands, product }: Props) {
 
       <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
         <h2 className="font-semibold text-zinc-200">Image</h2>
-        <Field label="Image type (placeholder fallback if no upload)">
-          <Select {...register("imageType")}>
-            <option value="flower">Flower</option>
-            <option value="edible">Edible</option>
-            <option value="vape">Vape</option>
-          </Select>
+        <input type="hidden" {...register("imageType")} />
+        <Field
+          label="Product image"
+          hint="Leave blank to show the product brand logo. Upload a product photo later to override it."
+        >
+          <AdminImageUploader value={imageUrl} onChange={setImageUrl} />
         </Field>
-        <AdminImageUploader value={imageUrl} onChange={setImageUrl} />
       </section>
 
       <div className="flex gap-3">

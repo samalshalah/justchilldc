@@ -13,7 +13,11 @@ import {
   Search,
   Star,
 } from "lucide-react";
-import { productImageUrl } from "@/lib/images";
+import {
+  isProductLogoFallback,
+  productImageFitClass,
+  productImageUrl,
+} from "@/lib/images";
 import {
   bulkDeleteProducts,
   bulkApplyDiscount,
@@ -352,11 +356,15 @@ export function ProductsList({ products }: Props) {
                     />
                   )}
                 </button>
-                <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-950 shrink-0">
+                <div
+                  className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg ${
+                    isProductLogoFallback(p) ? "bg-white" : "bg-zinc-950"
+                  }`}
+                >
                   <img
                     src={productImageUrl(p)}
                     alt={p.name}
-                    className="h-full w-full object-cover"
+                    className={`h-full w-full ${productImageFitClass(p, "p-2")}`}
                   />
                 </div>
                 <div className="flex-1 min-w-0">

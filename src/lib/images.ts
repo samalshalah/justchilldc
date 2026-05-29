@@ -1,36 +1,49 @@
 /**
- * Resolve a product's display image URL. Returns either:
- *   - the storage-proxy path for an admin-uploaded image, or
- *   - a stock placeholder PNG matching the product's imageType
- *
- * The placeholders live in /public/images/ and are bundled with the
- * site. Admin-uploaded images go through `/api/storage/...` which
- * proxies to configured object storage.
+ * Resolve a product's display image URL. Product uploads win; if a product
+ * does not have its own image yet, show its brand logo instead of bundled demo
+ * product photos. A neutral placeholder is used only when the brand has no
+ * uploaded logo.
  */
 
-export function productImageUrl(product: {
+const PRODUCT_IMAGE_PLACEHOLDER = "/images/product-placeholder.svg";
+
+type ProductImageInput = {
   imageUrl?: string | null;
   imageType?: string | null;
-}): string {
-  if (product.imageUrl) {
-    if (
-      product.imageUrl.startsWith("/api/storage/") ||
-      product.imageUrl.startsWith("http://") ||
-      product.imageUrl.startsWith("https://")
-    ) {
-      return product.imageUrl;
-    }
-    return `/api/storage${product.imageUrl}`;
+  brandLogoUrl?: string | null;
+};
+
+function storageUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (
+    path.startsWith("/api/storage/") ||
+    path.startsWith("http://") ||
+    path.startsWith("https://")
+  ) {
+    return path;
   }
-  switch (product.imageType) {
-    case "edible":
-      return "/images/product-edible.webp";
-    case "vape":
-      return "/images/product-vape.webp";
-    case "flower":
-    default:
-      return "/images/product-flower.webp";
-  }
+  return `/api/storage${path}`;
+}
+
+export function productImageUrl(product: ProductImageInput): string {
+  return (
+    storageUrl(product.imageUrl) ??
+    storageUrl(product.brandLogoUrl) ??
+    PRODUCT_IMAGE_PLACEHOLDER
+  );
+}
+
+export function isProductLogoFallback(product: ProductImageInput): boolean {
+  return !product.imageUrl && Boolean(product.brandLogoUrl);
+}
+
+export function productImageFitClass(
+  product: ProductImageInput,
+  logoPadding = "p-5"
+): string {
+  return isProductLogoFallback(product)
+    ? `object-contain ${logoPadding}`
+    : "object-cover object-center";
 }
 
 /**
@@ -64,26 +77,14 @@ export function categoryImageUrl(
   imageUrl: string | null,
   categoryName?: string
 ): string | null {
-  if (imageUrl) {
-    if (
-      imageUrl.startsWith("/api/storage/") ||
-      imageUrl.startsWith("http://") ||
-      imageUrl.startsWith("https://")
-    ) {
-      return imageUrl;
-    }
-    return `/api/storage${imageUrl}`;
-  }
+  const uploadedUrl = storageUrl(imageUrl);
+  if (uploadedUrl) return uploadedUrl;
   if (categoryName) return defaultCategoryImage(categoryName);
   return null;
 }
 
 export function logoUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith("/api/storage/") || path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-  return `/api/storage${path}`;
+  return storageUrl(path);
 }
 
 export function isStorageImageUrl(url: string | null | undefined): boolean {

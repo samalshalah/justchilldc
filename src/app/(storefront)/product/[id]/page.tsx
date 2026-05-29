@@ -7,7 +7,12 @@ import { getSiteSettings } from "@/lib/settings";
 import { getBrands, getProductById, getProducts } from "@/lib/data";
 import { ProductCard } from "@/components/ProductCard";
 import { AddToCartButton } from "@/components/AddToCartButton";
-import { isStorageImageUrl, productImageUrl } from "@/lib/images";
+import {
+  isProductLogoFallback,
+  isStorageImageUrl,
+  productImageFitClass,
+  productImageUrl,
+} from "@/lib/images";
 import { resolvePdpConfig } from "@/lib/shop-config";
 import { DEFAULTS } from "@/lib/defaults";
 import { getProductFeelings } from "@/lib/product-facets";
@@ -187,6 +192,7 @@ export default async function ProductDetailPage({
   const flavors = parseJsonArr(product.flavors);
   const feelings = getProductFeelings(product);
   const imageUrl = productImageUrl(product);
+  const logoFallback = isProductLogoFallback(product);
   const seoCopy = generateProductPageSeoCopy(
     {
       name: product.name,
@@ -357,8 +363,12 @@ export default async function ProductDetailPage({
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             {/* Image */}
-            <div className="relative aspect-square rounded-3xl overflow-hidden bg-card border border-border/50">
-              {showImageGradient && (
+            <div
+              className={`relative aspect-square overflow-hidden rounded-3xl border border-border/50 ${
+                logoFallback ? "bg-white" : "bg-card"
+              }`}
+            >
+              {showImageGradient && !logoFallback && (
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent z-10" />
               )}
               <Image
@@ -368,7 +378,7 @@ export default async function ProductDetailPage({
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 unoptimized={isStorageImageUrl(imageUrl)}
-                className="object-cover object-center"
+                className={productImageFitClass(product)}
               />
             </div>
 

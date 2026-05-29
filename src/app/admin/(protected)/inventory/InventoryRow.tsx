@@ -7,7 +7,11 @@ import {
   setProductStock,
 } from "@/lib/admin-mutations-client";
 import type { Product } from "@/lib/data";
-import { productImageUrl } from "@/lib/images";
+import {
+  isProductLogoFallback,
+  productImageFitClass,
+  productImageUrl,
+} from "@/lib/images";
 
 export function InventoryRow({ product }: { product: Product }) {
   const [pending, startTransition] = useTransition();
@@ -50,11 +54,15 @@ export function InventoryRow({ product }: { product: Product }) {
 
   return (
     <div className="flex items-center gap-3 p-4">
-      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-950">
+      <div
+        className={`h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-zinc-800 ${
+          isProductLogoFallback(product) ? "bg-white" : "bg-zinc-950"
+        }`}
+      >
         <img
           src={productImageUrl(product)}
           alt={product.name}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${productImageFitClass(product, "p-2")}`}
         />
       </div>
 

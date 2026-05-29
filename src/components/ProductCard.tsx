@@ -7,7 +7,12 @@ import { motion } from "framer-motion";
 import { Leaf, Plus, Tag } from "lucide-react";
 import { useCart } from "./CartContext";
 import { useSettings } from "./SettingsProvider";
-import { isStorageImageUrl, productImageUrl } from "@/lib/images";
+import {
+  isProductLogoFallback,
+  isStorageImageUrl,
+  productImageFitClass,
+  productImageUrl,
+} from "@/lib/images";
 import { isDealActive } from "@/lib/deal-schedule";
 import { isStaleGeneratedSeoCopy, seoTitleCase } from "@/lib/seo-generator";
 import { DEFAULTS } from "@/lib/defaults";
@@ -112,6 +117,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
     CARD_SHAPE[sc.card_shape ?? mc.card_shape ?? "rounded"] ?? "rounded-lg";
 
   const imageUrl = productImageUrl(product);
+  const logoFallback = isProductLogoFallback(product);
   const displayName = seoTitleCase(product.name);
   const city = settings.location?.city || settings.seo?.city || DEFAULTS.city;
   const storeName = settings.store?.name || DEFAULTS.storeName;
@@ -155,6 +161,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
       donation: product.donation,
       imageUrl: product.imageUrl,
       imageType: product.imageType,
+      brandLogoUrl: product.brandLogoUrl ?? null,
     });
     toast.success("Added to bag", { description: displayName });
   };
@@ -201,8 +208,12 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
       className={`group flex flex-col bg-card ${cardShape} overflow-hidden border border-border/60 transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-2xl hover:shadow-accent/5`}
     >
       <Link href={`/product/${product.id}`} className="block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-background/50">
-          {showImageGradient && (
+        <div
+          className={`relative aspect-[4/3] overflow-hidden ${
+            logoFallback ? "bg-white" : "bg-background/50"
+          }`}
+        >
+          {showImageGradient && !logoFallback && (
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
           )}
           <Image
@@ -211,7 +222,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             unoptimized={isStorageImageUrl(imageUrl)}
-            className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
+            className={`${productImageFitClass(product)} transition-transform duration-500 ease-out group-hover:scale-105`}
             priority={priority}
             loading={priority ? undefined : "lazy"}
           />
