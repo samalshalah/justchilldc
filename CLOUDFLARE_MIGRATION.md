@@ -13,7 +13,8 @@ This copy is prepared for Cloudflare Workers using the OpenNext Cloudflare adapt
 ## Cloudflare resources to create
 
 1. Worker: `chill-prodgit-storefront`
-2. Temporary custom domain: `chill.prodgt.com`
+2. Production custom domain: `justchilldc.com`
+3. Temporary preview domain: `chill.prodgt.com`
 3. R2 bucket for media: `chill-prodgit-media`
 4. R2 bucket for Next incremental cache: `chill-prodgit-next-cache`
 5. Hyperdrive config connected to your production Postgres database
@@ -22,7 +23,7 @@ This copy is prepared for Cloudflare Workers using the OpenNext Cloudflare adapt
    - Optional direct `DATABASE_URL` only if you are not using Hyperdrive
 
 After you create Hyperdrive, replace `replace-with-cloudflare-hyperdrive-id` in `wrangler.jsonc` with the real ID.
-The canonical production URL is configured as `https://chill.prodgt.com`.
+The canonical production URL is configured as `https://justchilldc.com`.
 
 ## Commands
 

@@ -14,7 +14,7 @@ A white-label Next.js storefront and admin system for a regulated local retail m
 
 Before launch, configure:
 
-- `NEXT_PUBLIC_SITE_URL` with the launch domain. The temporary launch domain is `https://chill.prodgt.com`.
+- `NEXT_PUBLIC_SITE_URL` with the launch domain. The production domain is `https://justchilldc.com`.
 - `ADMIN_PASSWORD` as a Cloudflare Worker secret.
 - A production Postgres database connected through Cloudflare Hyperdrive.
 - R2 buckets for uploaded media and OpenNext cache.
@@ -24,7 +24,7 @@ Before launch, configure:
 
 This project is prepared for Cloudflare Workers through OpenNext.
 
-- `wrangler.jsonc` is configured for the temporary `chill.prodgt.com` launch domain.
+- `wrangler.jsonc` is configured for the production `justchilldc.com` domain and the temporary `chill.prodgt.com` preview route.
 - `open-next.config.ts` configures the OpenNext Cloudflare adapter.
 - `public/_headers` defines baseline security headers.
 - `.github/workflows/deploy-cloudflare.yml` deploys `main` to Cloudflare after the `CLOUDFLARE_API_TOKEN` GitHub repository secret is added.

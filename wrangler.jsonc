@@ -36,13 +36,21 @@
 		}
 	],
 	"vars": {
-		"NEXT_PUBLIC_SITE_URL": "https://chill.prodgt.com",
+		"NEXT_PUBLIC_SITE_URL": "https://justchilldc.com",
 		"LOCAL_PREVIEW_MODE": "0"
 	},
 	"routes": [
 		{
 			"pattern": "chill.prodgt.com/*",
 			"zone_name": "prodgt.com"
+		},
+		{
+			"pattern": "justchilldc.com/*",
+			"zone_name": "justchilldc.com"
+		},
+		{
+			"pattern": "www.justchilldc.com/*",
+			"zone_name": "justchilldc.com"
 		}
 	]
 }

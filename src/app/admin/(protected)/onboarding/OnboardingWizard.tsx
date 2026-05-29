@@ -439,14 +439,14 @@ function BusinessStep({
           <Input
             value={business.website}
             onChange={(e) => setBusinessField("website", e.target.value)}
-            placeholder="https://chill.prodgt.com"
+            placeholder="https://justchilldc.com"
           />
         </Field>
-        <Field label="Canonical domain" hint="Used for SEO. Example: chill.prodgt.com">
+        <Field label="Canonical domain" hint="Used for SEO. Example: justchilldc.com">
           <Input
             value={business.domain}
             onChange={(e) => setBusinessField("domain", e.target.value)}
-            placeholder="chill.prodgt.com"
+            placeholder="justchilldc.com"
           />
         </Field>
       </div>
