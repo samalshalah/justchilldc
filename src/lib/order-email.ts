@@ -336,13 +336,29 @@ export async function sendOrderEmailMessages({
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
+          "User-Agent": "justchilldc.com/1.0",
         },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const body = await res.text().catch(() => "");
-        throw new Error(`Resend HTTP ${res.status}${body ? `: ${body}` : ""}`);
+        const responseMeta = [
+          res.statusText,
+          res.headers.get("content-type")
+            ? `content-type=${res.headers.get("content-type")}`
+            : "",
+          res.headers.get("retry-after")
+            ? `retry-after=${res.headers.get("retry-after")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("; ");
+        throw new Error(
+          `Resend HTTP ${res.status}${responseMeta ? ` ${responseMeta}` : ""}${
+            body ? `: ${body}` : ""
+          }`
+        );
       }
 
       sent += 1;
