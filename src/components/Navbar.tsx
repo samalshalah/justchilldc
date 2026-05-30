@@ -105,11 +105,11 @@ export function Navbar({ shopNav }: { shopNav?: ShopNavData }) {
               width={logoSize}
               height={logoSize}
               unoptimized={isStorageImageUrl(logoImageUrl)}
-              className="max-h-12 object-contain"
+              className="max-h-12 object-contain brightness-0 invert"
               priority
             />
           ) : (
-            <Leaf className="w-6 h-6 text-accent" aria-hidden="true" />
+            <Leaf className="h-6 w-6 text-white" aria-hidden="true" />
           )}
           <span className={logoSrc ? "sr-only" : "truncate"}>{storeName}</span>
         </Link>
