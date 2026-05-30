@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LockKeyhole, MapPin, Phone } from "lucide-react";
+import { MapPin, Phone } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { getBrands, getCategories, getProducts } from "@/lib/data";
 import { SettingsProvider } from "@/components/SettingsProvider";
@@ -155,13 +155,6 @@ function ComingSoonLanding({
                 {storeName}
               </span>
             </div>
-            <a
-              href="/admin/login"
-              className="inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:border-[#d8b95a]/60 hover:text-white"
-            >
-              <LockKeyhole className="h-4 w-4" aria-hidden="true" />
-              Admin
-            </a>
           </header>
 
           <section className="flex flex-1 flex-col items-center justify-center py-14 text-center">

@@ -291,12 +291,6 @@ export function Footer() {
               </ul>
             </div>
           )}
-          <Link
-            href="/admin/login"
-            className="text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-          >
-            Admin
-          </Link>
         </div>
 
         <div className="border-t border-border/50 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
