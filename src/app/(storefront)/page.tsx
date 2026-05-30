@@ -269,40 +269,42 @@ export default async function HomePage() {
             Open full menu <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:gap-4 [&::-webkit-scrollbar]:hidden">
-          {categoriesWithCounts.map((cat) => (
-            <Link
-              key={cat.name}
-              href={categoryPath(cat.name)}
-              className="group block w-[142px] shrink-0 snap-start overflow-hidden rounded-lg border border-border/60 bg-card text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10 md:w-[170px]"
-            >
-              {cat.imageUrl ? (
-                <div className="relative aspect-[4/3] w-full overflow-hidden">
-                  <Image
-                    src={cat.imageUrl}
-                    alt={cat.name}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                    unoptimized={isStorageImageUrl(cat.imageUrl)}
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                </div>
-              ) : (
-                <div className="p-4 pb-0">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-accent transition-all duration-300 group-hover:scale-105 group-hover:bg-accent/20">
-                    <Sparkles className="h-5 w-5" aria-hidden="true" />
+        <div className="-mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mx-auto flex w-max snap-x snap-mandatory gap-3 md:gap-4">
+            {categoriesWithCounts.map((cat) => (
+              <Link
+                key={cat.name}
+                href={categoryPath(cat.name)}
+                className="group block w-[142px] shrink-0 snap-start overflow-hidden rounded-lg border border-border/60 bg-card text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10 md:w-[170px]"
+              >
+                {cat.imageUrl ? (
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <Image
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      unoptimized={isStorageImageUrl(cat.imageUrl)}
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   </div>
+                ) : (
+                  <div className="p-4 pb-0">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-accent transition-all duration-300 group-hover:scale-105 group-hover:bg-accent/20">
+                      <Sparkles className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                  </div>
+                )}
+                <div className="p-3">
+                  <h3 className="line-clamp-1 text-sm font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-base">
+                    {cat.name}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground">{cat.count} Products</p>
                 </div>
-              )}
-              <div className="p-3">
-                <h3 className="line-clamp-1 text-sm font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-base">
-                  {cat.name}
-                </h3>
-                <p className="mt-1 text-xs text-muted-foreground">{cat.count} Products</p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>
