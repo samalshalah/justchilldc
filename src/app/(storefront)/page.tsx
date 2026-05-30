@@ -5,6 +5,7 @@ import { ArrowRight, ShieldCheck, UserCheck, Star, Truck, Sparkles } from "lucid
 import { getSiteSettings } from "@/lib/settings";
 import { getProducts, getCategories, getBrands } from "@/lib/data";
 import { FeaturedCarousel } from "@/components/FeaturedCarousel";
+import { HomeProductTabsCarousel, type HomeProductTabGroup } from "@/components/HomeProductTabsCarousel";
 import { TESTIMONIALS } from "@/lib/testimonials";
 import { categoryImageUrl, isStorageImageUrl } from "@/lib/images";
 import { NewsletterForm } from "@/components/NewsletterForm";
@@ -135,23 +136,50 @@ export default async function HomePage() {
       count: allProducts.filter((product) => getProductFeelings(product).includes(feeling)).length,
     }))
     .slice(0, 6);
-  const showQuickShopLinks = sec.categories?.show_quick_links !== false;
-  const menuExploreGroups = showQuickShopLinks
-    ? [
-        {
-          title: "Shop by Brand",
-          items: brandLinks,
-        },
-        {
-          title: "Shop by Feel",
-          items: feelingLinks,
-        },
-        {
-          title: "Shop by Strain",
-          items: strainLinks,
-        },
-      ].filter((group) => group.items.length > 0)
-    : [];
+  const brandProductGroups: HomeProductTabGroup[] = brands
+    .map((brand) => {
+      const products = allProducts
+        .filter((product) => product.brandId === brand.id)
+        .slice(0, 16);
+      return {
+        id: `brand-${brand.id}`,
+        label: brand.name,
+        href: `/shop?brand=${brand.id}`,
+        count: productCountByBrand.get(brand.id) ?? 0,
+        products,
+      };
+    })
+    .filter((group) => group.count > 0 && group.products.length > 0)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, 8);
+  const feelingProductGroups: HomeProductTabGroup[] = feelingLinks
+    .map((feeling) => {
+      const products = allProducts
+        .filter((product) => getProductFeelings(product).includes(feeling.name))
+        .slice(0, 16);
+      return {
+        id: `feel-${feeling.name}`,
+        label: feeling.name,
+        href: feeling.href,
+        count: feeling.count,
+        products,
+      };
+    })
+    .filter((group) => group.count > 0 && group.products.length > 0);
+  const strainProductGroups: HomeProductTabGroup[] = strainLinks
+    .map((strain) => {
+      const products = allProducts
+        .filter((product) => product.strain === strain.name)
+        .slice(0, 16);
+      return {
+        id: `strain-${strain.name}`,
+        label: strain.name,
+        href: strain.href,
+        count: strain.count,
+        products,
+      };
+    })
+    .filter((group) => group.count > 0 && group.products.length > 0);
   const heroStats = [
     { value: allProducts.length.toString(), label: "In-stock items" },
     { value: categoriesWithCounts.filter((cat) => cat.count > 0).length.toString(), label: "Menu categories" },
@@ -164,17 +192,6 @@ export default async function HomePage() {
     { icon: Star, title: "Premium Quality", desc: "We source thoughtfully and keep the menu focused on trusted products." },
     { icon: Truck, title: "Fast & Discreet", desc: "Secure, private, and efficient service every single time." },
   ];
-
-  const catDesktopCols = sec.categories?.columns ?? 4;
-  const catMobileCols = sec.categories?.mobile_columns ?? 2;
-  const catCardSize = sec.categories?.card_size ?? "md";
-  const CAT_MOBILE_COLS: Record<number, string> = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" };
-  const CAT_DESKTOP_COLS: Record<number, string> = {
-    2: "md:grid-cols-2", 3: "md:grid-cols-3", 4: "md:grid-cols-4", 5: "md:grid-cols-5", 6: "md:grid-cols-6",
-  };
-  const catGridClass = `${CAT_MOBILE_COLS[catMobileCols] ?? "grid-cols-2"} ${CAT_DESKTOP_COLS[catDesktopCols] ?? "md:grid-cols-4"}`;
-  const catAspect =
-    catCardSize === "sm" ? "aspect-[2/1]" : catCardSize === "lg" ? "aspect-[4/3]" : "aspect-[16/9]";
 
   const heroSection = show.hero && (
     <section key="hero" className="relative min-h-[72vh] overflow-hidden">
@@ -252,39 +269,15 @@ export default async function HomePage() {
             Open full menu <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
-        {menuExploreGroups.length > 0 && (
-          <div className="mb-8 grid gap-3 md:grid-cols-3">
-            {menuExploreGroups.map((group) => (
-              <div key={group.title} className="rounded-lg border border-border/70 bg-card/55 p-4">
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {group.title}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {group.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="inline-flex items-center gap-2 rounded-full border border-border bg-background/70 px-3 py-1.5 text-sm font-semibold text-foreground/85 transition hover:border-accent/60 hover:text-accent"
-                    >
-                      <span>{item.name}</span>
-                      <span className="text-xs text-muted-foreground">{item.count}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className={`grid ${catGridClass} mx-auto max-w-5xl gap-3 md:gap-4`}>
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] md:gap-4 [&::-webkit-scrollbar]:hidden">
           {categoriesWithCounts.map((cat) => (
             <Link
               key={cat.name}
               href={categoryPath(cat.name)}
-              className="group block overflow-hidden rounded-lg border border-border/60 bg-card text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10"
+              className="group block w-[142px] shrink-0 snap-start overflow-hidden rounded-lg border border-border/60 bg-card text-center transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10 md:w-[170px]"
             >
               {cat.imageUrl ? (
-                <div className={`relative w-full ${catAspect} overflow-hidden`}>
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
                   <Image
                     src={cat.imageUrl}
                     alt={cat.name}
@@ -302,17 +295,47 @@ export default async function HomePage() {
                   </div>
                 </div>
               )}
-              <div className="p-3 md:p-4">
-                <h3 className="text-base font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-lg">
+              <div className="p-3">
+                <h3 className="line-clamp-1 text-sm font-bold leading-tight text-foreground transition-colors group-hover:text-accent md:text-base">
                   {cat.name}
                 </h3>
-                <p className="mt-1 text-xs text-muted-foreground md:text-sm">{cat.count} Products</p>
+                <p className="mt-1 text-xs text-muted-foreground">{cat.count} Products</p>
               </div>
             </Link>
           ))}
         </div>
       </div>
     </section>
+  );
+
+  const brandTabsSection = brandProductGroups.length > 0 && (
+    <HomeProductTabsCarousel
+      key="brand_tabs"
+      eyebrow="Shop by Brand"
+      title="Browse Products by Brand"
+      subtitle="Choose a trusted brand and quickly scan the products available now."
+      groups={brandProductGroups}
+    />
+  );
+
+  const feelingTabsSection = feelingProductGroups.length > 0 && (
+    <HomeProductTabsCarousel
+      key="feel_tabs"
+      eyebrow="Shop by Feel"
+      title="Shop by the Experience You Want"
+      subtitle="Find products grouped by common effects like calm, sleep, focus, and energy."
+      groups={feelingProductGroups}
+    />
+  );
+
+  const strainTabsSection = strainProductGroups.length > 0 && (
+    <HomeProductTabsCarousel
+      key="strain_tabs"
+      eyebrow="Shop by Strain"
+      title="Explore Products by Strain Type"
+      subtitle="Browse Indica, Sativa, Hybrid, and CBD products from the live menu."
+      groups={strainProductGroups}
+    />
   );
 
   const featuredSection = show.featured && (
@@ -463,11 +486,35 @@ export default async function HomePage() {
   const sectionMap: Record<string, React.ReactNode> = {
     hero: heroSection,
     categories: categoriesSection,
+    brand_tabs: brandTabsSection,
+    feel_tabs: feelingTabsSection,
+    strain_tabs: strainTabsSection,
     featured: featuredSection,
     why_us: whyUsSection,
     testimonials: testimonialsSection,
     newsletter: newsletterSection,
   };
 
-  return <>{sectionOrder.map((id) => sectionMap[id] ?? null)}</>;
+  const browseSections = [brandTabsSection, feelingTabsSection, strainTabsSection];
+  const renderedSections: React.ReactNode[] = [];
+  let insertedBrowseSections = false;
+
+  for (const id of sectionOrder) {
+    renderedSections.push(sectionMap[id] ?? null);
+    if (id === "categories" && !insertedBrowseSections) {
+      renderedSections.push(...browseSections);
+      insertedBrowseSections = true;
+    }
+  }
+
+  if (!insertedBrowseSections) {
+    const heroIndex = sectionOrder.indexOf("hero");
+    if (heroIndex >= 0) {
+      renderedSections.splice(heroIndex + 1, 0, categoriesSection, ...browseSections);
+    } else {
+      renderedSections.unshift(categoriesSection, ...browseSections);
+    }
+  }
+
+  return <>{renderedSections}</>;
 }
