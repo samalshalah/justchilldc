@@ -8,15 +8,22 @@ import type { SiteSettings } from "@/lib/types";
 
 type CO = NonNullable<SiteSettings["checkout_config"]>;
 type OR = NonNullable<SiteSettings["ordering"]>;
+type ST = NonNullable<SiteSettings["store"]>;
 
 interface Props {
   checkout: CO;
   ordering: OR;
+  store: ST;
 }
 
-export function CheckoutSettingsForm({ checkout: initCO, ordering: initOR }: Props) {
+export function CheckoutSettingsForm({
+  checkout: initCO,
+  ordering: initOR,
+  store: initStore,
+}: Props) {
   const [co, setCO] = useState<CO>(initCO);
   const [or, setOR] = useState<OR>(initOR);
+  const [store, setStore] = useState<ST>(initStore);
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +35,7 @@ export function CheckoutSettingsForm({ checkout: initCO, ordering: initOR }: Pro
       try {
         await saveSettingSlice("checkout_config", co);
         await saveSettingSlice("ordering", or);
+        await saveSettingSlice("store", store);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       } catch (err) {
@@ -77,6 +85,33 @@ export function CheckoutSettingsForm({ checkout: initCO, ordering: initOR }: Pro
             />
           </Field>
         </div>
+      </section>
+
+      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <h2 className="font-semibold text-zinc-200">Order emails</h2>
+        <Checkbox
+          label="Send pickup order emails"
+          checked={store.order_confirmation_enabled ?? false}
+          onChange={(e) =>
+            setStore({
+              ...store,
+              order_confirmation_enabled: e.target.checked,
+            })
+          }
+        />
+        <Field
+          label="Store notification email"
+          hint="Customers always receive a confirmation when order emails are enabled. Add the store email here to also notify staff."
+        >
+          <Input
+            type="email"
+            value={store.order_confirmation_email ?? ""}
+            onChange={(e) =>
+              setStore({ ...store, order_confirmation_email: e.target.value })
+            }
+            placeholder="orders@justchilldc.com"
+          />
+        </Field>
       </section>
 
       <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">

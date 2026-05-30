@@ -24,6 +24,11 @@ import { getSiteSettings, invalidateSettings } from "@/lib/settings";
 import { computeBestDeal } from "@/lib/deal-engine";
 import { DEFAULTS } from "@/lib/defaults";
 import { getOrderById } from "@/lib/data";
+import {
+  buildOrderEmailMessages,
+  defaultOrderFromEmail,
+  sendOrderEmailMessages,
+} from "@/lib/order-email";
 
 const Body = z.object({
   customerName: z.string().min(2),
@@ -195,7 +200,24 @@ export async function POST(req: Request) {
     // Invalidate settings cache so admin sees fresh order list immediately
     invalidateSettings();
 
-    // TODO: send order_confirmation_email if settings.store?.order_confirmation_enabled
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? new URL(req.url).origin;
+    const emailMessages = buildOrderEmailMessages({
+      settings,
+      order: result,
+      siteUrl,
+      fromEmail:
+        process.env.RESEND_FROM_EMAIL ??
+        defaultOrderFromEmail(settings, siteUrl),
+    });
+    const emailResult = await sendOrderEmailMessages({
+      apiKey: process.env.RESEND_API_KEY,
+      messages: emailMessages,
+    });
+    if (emailResult.failed > 0) {
+      console.warn("[orders] email send failed:", emailResult.errors);
+    }
+
     console.log(
       "[orders] new order:",
       result.confirmationCode,

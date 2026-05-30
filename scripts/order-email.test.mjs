@@ -1,0 +1,117 @@
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import test from "node:test";
+import ts from "typescript";
+
+async function importOrderEmailModule() {
+  const sourcePath = path.resolve("src/lib/order-email.ts");
+  const source = await readFile(sourcePath, "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.ES2022,
+      target: ts.ScriptTarget.ES2022,
+      verbatimModuleSyntax: true,
+    },
+  });
+  const dir = await mkdtemp(path.join(tmpdir(), "order-email-"));
+  const compiledPath = path.join(dir, "order-email.mjs");
+  await writeFile(compiledPath, compiled.outputText, "utf8");
+  return import(pathToFileURL(compiledPath).href);
+}
+
+const mod = await importOrderEmailModule();
+
+const baseOrder = {
+  id: 123,
+  confirmationCode: "JC-ABC123",
+  customerName: "Sam Customer",
+  customerEmail: "customer@example.com",
+  customerPhone: "(202) 555-0100",
+  preferredPickupTime: "Today after 5 PM",
+  notes: "Please call when ready.",
+  status: "pending",
+  totalDonation: 60,
+  createdAt: new Date("2026-05-30T14:00:00Z"),
+  items: [
+    {
+      id: 1,
+      orderId: 123,
+      productId: 10,
+      productName: "Blue Dream CBD",
+      quantity: 2,
+      donationPerItem: 30,
+    },
+  ],
+};
+
+const baseSettings = {
+  store: {
+    name: "Just Chill DC",
+    order_confirmation_enabled: true,
+    order_confirmation_email: "orders@example.com",
+  },
+  location: {
+    address: "1314B 9th St NW, Washington DC 20001",
+    city: "Washington",
+    state: "DC",
+  },
+  contact: {
+    phone: "(202) 481-1676",
+  },
+};
+
+test("builds customer and store pickup emails when enabled", () => {
+  const messages = mod.buildOrderEmailMessages({
+    settings: baseSettings,
+    order: baseOrder,
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.equal(messages.length, 2);
+  assert.equal(messages[0].to, "customer@example.com");
+  assert.equal(messages[1].to, "orders@example.com");
+  assert.match(messages[0].subject, /JC-ABC123/);
+  assert.match(messages[0].html, /Blue Dream CBD/);
+  assert.match(messages[0].html, /https:\/\/justchilldc\.com\/order\/123/);
+  assert.equal(messages[1].reply_to, "customer@example.com");
+});
+
+test("does not build emails when order emails are disabled", () => {
+  const messages = mod.buildOrderEmailMessages({
+    settings: {
+      ...baseSettings,
+      store: { ...baseSettings.store, order_confirmation_enabled: false },
+    },
+    order: baseOrder,
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.deepEqual(messages, []);
+});
+
+test("uses contact email as the store notification fallback", () => {
+  const messages = mod.buildOrderEmailMessages({
+    settings: {
+      ...baseSettings,
+      store: {
+        name: "Just Chill DC",
+        order_confirmation_enabled: true,
+      },
+      contact: {
+        email: "manager@example.com",
+        phone: "(202) 481-1676",
+      },
+    },
+    order: baseOrder,
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.equal(messages.length, 2);
+  assert.equal(messages[1].to, "manager@example.com");
+});

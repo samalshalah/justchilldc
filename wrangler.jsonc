@@ -37,7 +37,8 @@
 	],
 	"vars": {
 		"NEXT_PUBLIC_SITE_URL": "https://justchilldc.com",
-		"LOCAL_PREVIEW_MODE": "0"
+		"LOCAL_PREVIEW_MODE": "0",
+		"RESEND_FROM_EMAIL": "orders@justchilldc.com"
 	},
 	"routes": [
 		{
