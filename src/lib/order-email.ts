@@ -83,6 +83,18 @@ function normalizeEmailList(value: string | null | undefined): string[] {
   return emails;
 }
 
+function normalizeResendApiKey(value: string | undefined): string | null {
+  let key = clean(value);
+  for (let i = 0; i < 3; i++) {
+    key = key
+      .replace(/^["']|["']$/g, "")
+      .replace(/^Bearer\s+/i, "")
+      .trim();
+  }
+  key = key.match(/re_[A-Za-z0-9_-]+/)?.[0] ?? key;
+  return key || null;
+}
+
 function normalizeBaseUrl(value: string): string {
   return clean(value).replace(/\/+$/, "") || "https://justchilldc.com";
 }
@@ -310,7 +322,8 @@ export async function sendOrderEmailMessages({
   fetcher = fetch,
 }: SendOrderEmailMessagesInput): Promise<OrderEmailSendResult> {
   if (!messages.length) return { sent: 0, failed: 0, errors: [] };
-  if (!apiKey) {
+  const normalizedApiKey = normalizeResendApiKey(apiKey);
+  if (!normalizedApiKey) {
     return {
       sent: 0,
       failed: messages.length,
@@ -334,7 +347,7 @@ export async function sendOrderEmailMessages({
       const res = await fetcher("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${normalizedApiKey}`,
           "Content-Type": "application/json",
           "User-Agent": "justchilldc.com/1.0",
         },

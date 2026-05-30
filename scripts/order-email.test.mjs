@@ -190,3 +190,72 @@ test("send request includes a user agent header", async () => {
   assert.equal(response.sent, 1);
   assert.equal(headers["User-Agent"], "justchilldc.com/1.0");
 });
+
+test("send request normalizes bearer-prefixed API keys", async () => {
+  let headers;
+  const response = await mod.sendOrderEmailMessages({
+    apiKey: "Bearer re_test",
+    messages: [
+      {
+        from: "Just Chill DC <orders@justchilldc.com>",
+        to: "customer@example.com",
+        subject: "Test",
+        html: "<p>Test</p>",
+        text: "Test",
+      },
+    ],
+    fetcher: async (_url, init) => {
+      headers = init.headers;
+      return new Response(JSON.stringify({ id: "email_123" }), { status: 200 });
+    },
+  });
+
+  assert.equal(response.sent, 1);
+  assert.equal(headers.Authorization, "Bearer re_test");
+});
+
+test("send request normalizes quoted bearer-prefixed API keys", async () => {
+  let headers;
+  const response = await mod.sendOrderEmailMessages({
+    apiKey: '"Bearer re_test"',
+    messages: [
+      {
+        from: "Just Chill DC <orders@justchilldc.com>",
+        to: "customer@example.com",
+        subject: "Test",
+        html: "<p>Test</p>",
+        text: "Test",
+      },
+    ],
+    fetcher: async (_url, init) => {
+      headers = init.headers;
+      return new Response(JSON.stringify({ id: "email_123" }), { status: 200 });
+    },
+  });
+
+  assert.equal(response.sent, 1);
+  assert.equal(headers.Authorization, "Bearer re_test");
+});
+
+test("send request extracts API keys from env-style secret values", async () => {
+  let headers;
+  const response = await mod.sendOrderEmailMessages({
+    apiKey: "RESEND_API_KEY=re_test",
+    messages: [
+      {
+        from: "Just Chill DC <orders@justchilldc.com>",
+        to: "customer@example.com",
+        subject: "Test",
+        html: "<p>Test</p>",
+        text: "Test",
+      },
+    ],
+    fetcher: async (_url, init) => {
+      headers = init.headers;
+      return new Response(JSON.stringify({ id: "email_123" }), { status: 200 });
+    },
+  });
+
+  assert.equal(response.sent, 1);
+  assert.equal(headers.Authorization, "Bearer re_test");
+});
