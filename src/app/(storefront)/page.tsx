@@ -189,10 +189,10 @@ export default async function HomePage() {
           className="object-cover object-center"
         />
         <div className={`absolute inset-0 ${heroOverlay}`} />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--background))_0%,hsl(var(--background)/0.86)_34%,hsl(var(--background)/0.34)_72%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(var(--background)/0.34)_0%,hsl(var(--background)/0.62)_58%,hsl(var(--background)/0.92)_100%)]" />
       </div>
-      <div className="container relative z-10 mx-auto flex min-h-[72vh] items-center px-4 py-12">
-        <div className="max-w-3xl">
+      <div className="container relative z-10 mx-auto flex min-h-[72vh] items-center justify-center px-4 py-12 text-center">
+        <div className="mx-auto flex max-w-4xl flex-col items-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-widest text-accent">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             {t(sec.hero?.badge, DEFAULTS.heroBadge)}
@@ -200,10 +200,10 @@ export default async function HomePage() {
           <h1 className="mt-5 text-4xl font-bold leading-[1.02] text-foreground md:text-6xl lg:text-7xl">
             {t(sec.hero?.headline, heroHeadlineFallback)}
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-relaxed text-foreground/80 md:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-foreground/80 md:text-lg">
             {t(sec.hero?.subheadline, heroSubheadlineFallback)}
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href={sec.hero?.cta_primary_link || "/shop"}
               className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 font-bold text-accent-foreground shadow-[0_18px_45px_-22px_hsl(var(--accent))] transition duration-300 hover:-translate-y-0.5 hover:bg-accent/90 sm:w-auto"
@@ -218,7 +218,7 @@ export default async function HomePage() {
               {t(sec.hero?.cta_secondary, DEFAULTS.heroCtaSecondary)}
             </Link>
           </div>
-          <div className="mt-8 grid max-w-2xl grid-cols-3 overflow-hidden rounded-lg border border-border/70 bg-background/75 backdrop-blur">
+          <div className="mx-auto mt-8 grid max-w-2xl grid-cols-3 overflow-hidden rounded-lg border border-border/70 bg-background/75 backdrop-blur">
             {heroStats.map((stat) => (
               <div key={stat.label} className="border-r border-border/60 px-4 py-3 last:border-r-0">
                 <p className="text-xl font-bold text-foreground md:text-2xl">{stat.value}</p>
