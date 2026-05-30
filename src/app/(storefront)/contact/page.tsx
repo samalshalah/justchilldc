@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
-import { Mail, Phone, Instagram } from "lucide-react";
+import { ExternalLink, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { ContactForm } from "@/components/ContactForm";
 import { DEFAULTS } from "@/lib/defaults";
+
+const JUST_CHILL_GOOGLE_MAPS_URL =
+  "https://www.google.com/maps/place/Just+Chill+DC+Licensed+Weed,+Cannabis,+and+THC+Dispensary/data=!4m2!3m1!1s0x0:0x880f94af6b578e6b?sa=X&ved=1t:2428&ictx=111";
+const JUST_CHILL_MAP_QUERY =
+  "Just Chill DC Licensed Weed, Cannabis, and THC Dispensary";
+const JUST_CHILL_MAP_EMBED_URL = `https://www.google.com/maps?q=${encodeURIComponent(
+  JUST_CHILL_MAP_QUERY
+)}&output=embed`;
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -21,6 +29,11 @@ export default async function ContactPage() {
   const phone = c.phone || settings.location?.phone || settings.store?.phone;
   const email = c.email;
   const ig = c.instagram || settings.store?.instagram;
+  const loc = settings.location ?? {};
+  const hideAddress = settings.store?.display_hide_address ?? false;
+  const address = loc.address || settings.store?.address;
+  const mapEmbedUrl = loc.mapEmbedUrl || JUST_CHILL_MAP_EMBED_URL;
+  const mapsUrl = JUST_CHILL_GOOGLE_MAPS_URL;
 
   return (
     <>
@@ -47,11 +60,36 @@ export default async function ContactPage() {
 
       <section className="py-14 bg-background">
         <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-10">
-          <div>
+          <div className="space-y-8">
             <h2 className="text-2xl font-display font-bold text-foreground mb-6">
               Reach Out Directly
             </h2>
             <ul className="space-y-4">
+              {!hideAddress && address && (
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-5 h-5 text-accent shrink-0 mt-1" />
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                      Address
+                    </p>
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-foreground hover:text-accent transition-colors"
+                    >
+                      {address}
+                      {loc.city && (
+                        <>
+                          <br />
+                          {loc.city}
+                          {loc.state && `, ${loc.state}`} {loc.zip ?? ""}
+                        </>
+                      )}
+                    </a>
+                  </div>
+                </li>
+              )}
               {phone && (
                 <li className="flex items-start gap-3">
                   <Phone className="w-5 h-5 text-accent shrink-0 mt-1" />
@@ -103,6 +141,38 @@ export default async function ContactPage() {
                 </li>
               )}
             </ul>
+
+            <div className="overflow-hidden rounded-2xl border border-border/50 bg-card">
+              <div className="flex flex-col gap-3 border-b border-border/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display text-xl font-bold text-foreground">
+                    Find Us on Google Maps
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Open directions before visiting for pickup.
+                  </p>
+                </div>
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-accent/60 hover:text-accent"
+                >
+                  Directions
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
+              <div className="h-[320px] bg-background md:h-[380px]">
+                <iframe
+                  src={mapEmbedUrl}
+                  title="Just Chill DC Google Map"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="h-full w-full border-0"
+                />
+              </div>
+            </div>
           </div>
 
           {(settings.contact_page?.show_form ?? true) && (
