@@ -34,6 +34,7 @@ export function HomeProductTabsCarousel({
 
   const activeGroup = groups.find((group) => group.id === activeId) ?? groups[0];
   const products = activeGroup?.products ?? [];
+  const sectionId = eyebrow.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   const updateScrollState = () => {
     const scroller = scrollerRef.current;
@@ -79,7 +80,10 @@ export function HomeProductTabsCarousel({
   if (groups.length === 0 || !activeGroup) return null;
 
   return (
-    <section className="border-y border-border/50 bg-card/25 py-12">
+    <section
+      className="border-y border-border/50 bg-card/25 py-12"
+      data-home-product-section={sectionId}
+    >
       <div className="container mx-auto px-4">
         <div className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
@@ -110,6 +114,7 @@ export function HomeProductTabsCarousel({
                 key={group.id}
                 type="button"
                 onClick={() => setActiveId(group.id)}
+                data-home-product-tab={group.id}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
                   selected
                     ? "border-accent bg-accent text-accent-foreground"
@@ -138,7 +143,7 @@ export function HomeProductTabsCarousel({
             {products.map((product, index) => (
               <div
                 key={product.id}
-                className="w-[78vw] max-w-[310px] shrink-0 snap-start sm:w-[44vw] lg:w-[230px] xl:w-[232px]"
+                className="w-[78vw] max-w-[310px] shrink-0 snap-start sm:w-[44vw] lg:w-[230px] xl:w-[240px] 2xl:w-[286px]"
               >
                 <ProductCard product={product} index={index} priority={index < 2} />
               </div>
