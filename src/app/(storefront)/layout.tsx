@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { AgeGateModal } from "@/components/AgeGateModal";
 import { StoreJsonLd } from "@/components/StoreJsonLd";
 import { ToasterProvider } from "@/components/ToasterProvider";
+import { MobileStickyActions } from "@/components/MobileStickyActions";
 import { DEFAULTS } from "@/lib/defaults";
 import { getAvailableFeelings, getAvailableStrains, getProductFeelings } from "@/lib/product-facets";
 import { categoryPath } from "@/lib/url";
@@ -33,6 +34,12 @@ export default async function StorefrontLayout({
 }) {
   const settings = await getSiteSettings();
   const storeName = settings.store?.name || DEFAULTS.storeName;
+  const storefrontPhone =
+    settings.location?.phone ||
+    settings.contact?.phone ||
+    settings.store?.phone;
+  const storefrontAddress = settings.location?.address || settings.store?.address;
+  const showStickyActions = Boolean(storefrontPhone || storefrontAddress);
 
   if (settings.maintenance_mode) {
     return (
@@ -101,11 +108,26 @@ export default async function StorefrontLayout({
     <SettingsProvider settings={settings}>
       <CartProvider>
         <StoreJsonLd />
-        <div className="min-h-screen flex flex-col bg-background selection:bg-accent selection:text-accent-foreground">
+        <div
+          className={`min-h-screen flex flex-col bg-background selection:bg-accent selection:text-accent-foreground ${
+            showStickyActions ? "pb-24 md:pb-0" : ""
+          }`}
+        >
           <AgeGateModal />
           <Navbar shopNav={shopNav} />
           <main className="flex-grow pt-[88px] md:pt-[104px]">{children}</main>
           <Footer />
+          {showStickyActions && (
+            <MobileStickyActions
+              storeName={storeName}
+              phone={storefrontPhone}
+              address={storefrontAddress}
+              city={settings.location?.city}
+              state={settings.location?.state}
+              zip={settings.location?.zip}
+              placeId={settings.integrations?.google_business_profile_place_id}
+            />
+          )}
           <ToasterProvider />
         </div>
       </CartProvider>
