@@ -10,7 +10,7 @@ import type { DealRule } from "./types";
 
 interface CartItemForDeals {
   productId: number;
-  donation: number;
+  price: number;
   quantity: number;
 }
 
@@ -72,7 +72,7 @@ export function computeBestDeal(
           // Free items: cheapest items in cart counted "free"
           const sorted = items
             .flatMap((i) =>
-              Array.from({ length: i.quantity }).map(() => i.donation)
+              Array.from({ length: i.quantity }).map(() => i.price)
             )
             .sort((a, b) => a - b);
           const freeQty = (deal.getQty ?? 1) * Math.floor(totalQty / deal.buyQty);

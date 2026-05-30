@@ -19,7 +19,7 @@ import {
 export interface CartItem {
   productId: number;
   name: string;
-  donation: number;
+  price: number;
   imageUrl: string | null;
   imageType: string;
   brandLogoUrl?: string | null;
@@ -29,7 +29,7 @@ export interface CartItem {
 interface CartContextValue {
   items: CartItem[];
   totalItems: number;
-  totalDonation: number;
+  totalPrice: number;
   addItem: (
     product: Omit<CartItem, "quantity">,
     quantity?: number
@@ -72,8 +72,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, hydrated]);
 
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
-  const totalDonation = items.reduce(
-    (s, i) => s + i.donation * i.quantity,
+  const totalPrice = items.reduce(
+    (s, i) => s + i.price * i.quantity,
     0
   );
 
@@ -115,7 +115,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         totalItems,
-        totalDonation,
+        totalPrice,
         addItem,
         removeItem,
         updateQuantity,

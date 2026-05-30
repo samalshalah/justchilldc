@@ -112,7 +112,7 @@ export async function POST(req: Request) {
       return {
         product,
         item,
-        lineTotal: product.donation * item.quantity,
+        lineTotal: product.price * item.quantity,
       };
     });
 
@@ -124,11 +124,11 @@ export async function POST(req: Request) {
       enabledDeals,
       data.items.map((i) => {
         const p = productMap.get(i.productId)!;
-        return { productId: i.productId, donation: p.donation, quantity: i.quantity };
+        return { productId: i.productId, price: p.price, quantity: i.quantity };
       }),
       subtotal
     );
-    const totalDonation = Math.round(
+    const totalPrice = Math.round(
       Math.max(0, subtotal - (deal?.discountAmount ?? 0))
     );
 
@@ -160,7 +160,7 @@ export async function POST(req: Request) {
           preferredPickupTime: data.preferredPickupTime,
           notes: data.notes ?? null,
           status: "pending",
-          totalDonation,
+          totalPrice,
         })
         .returning();
 
@@ -173,7 +173,7 @@ export async function POST(req: Request) {
               productId: item.productId,
               productName: product.name,
               quantity: item.quantity,
-              donationPerItem: product.donation,
+              pricePerItem: product.price,
             })
             .returning()
             .then((rows) => rows[0])
@@ -222,7 +222,7 @@ export async function POST(req: Request) {
       "[orders] new order:",
       result.confirmationCode,
       result.customerEmail,
-      `$${totalDonation}`
+      `$${totalPrice}`
     );
 
     return NextResponse.json(result, { status: 201 });

@@ -264,7 +264,7 @@ export default async function ProductDetailPage({
     ...(brandName ? { brand: { "@type": "Brand", name: brandName } } : {}),
     offers: {
       "@type": "Offer",
-      price: product.salePrice ?? product.donation,
+      price: product.salePrice ?? product.price,
       priceCurrency: "USD",
       availability: product.inStock
         ? "https://schema.org/InStock"
@@ -422,12 +422,12 @@ export default async function ProductDetailPage({
                       ${product.salePrice}
                     </span>
                     <span className="text-2xl text-foreground/40 line-through">
-                      ${product.donation}
+                      ${product.price}
                     </span>
                   </>
                 ) : (
                   <span className="text-4xl font-bold text-accent">
-                    ${product.donation}
+                    ${product.price}
                   </span>
                 )}
                 <span className="text-sm text-muted-foreground">

@@ -370,7 +370,7 @@ export function ProductsList({ products }: Props) {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{p.name}</p>
                   <p className="text-sm text-zinc-500">
-                    {p.category} · {p.strain} · ${p.donation}
+                    {p.category} · {p.strain} · ${p.price}
                     {p.salePrice ? ` (sale $${p.salePrice})` : ""}
                     {p.quantity != null && ` · qty ${p.quantity}`}
                   </p>

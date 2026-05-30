@@ -81,7 +81,7 @@ export function OrdersTable({ orders }: Props) {
                 {o.preferredPickupTime}
               </div>
               <div className="font-bold text-amber-500 whitespace-nowrap">
-                ${o.totalDonation}
+                ${o.totalPrice}
               </div>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs border whitespace-nowrap ${
@@ -105,7 +105,7 @@ export function OrdersTable({ orders }: Props) {
                             {it.quantity} × {it.productName}
                           </span>
                           <span className="text-zinc-400">
-                            ${it.donationPerItem * it.quantity}
+                            ${it.pricePerItem * it.quantity}
                           </span>
                         </li>
                       ))}

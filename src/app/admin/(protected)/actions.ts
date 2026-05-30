@@ -93,7 +93,7 @@ export interface ProductInput {
   strain: string;
   thc: string;
   cbd?: string;
-  donation: number;
+  price: number;
   salePrice?: number | null;
   imageType?: string;
   imageUrl?: string | null;
@@ -284,7 +284,7 @@ export async function bulkDeleteProducts(ids: number[]): Promise<{ deleted: numb
 
 /**
  * Bulk apply discount.
- *   - mode: "percent" → sale_price = round(donation * (1 - percent/100))
+ *   - mode: "percent" → sale_price = round(price * (1 - percent/100))
  *   - mode: "flat"    → sale_price = the given dollar amount (per product)
  *   - mode: "clear"   → sale_price = NULL (revert to regular price)
  */
@@ -315,7 +315,7 @@ export async function bulkApplyDiscount(
       await db
         .update(productsTable)
         .set({
-          salePrice: sql`GREATEST(1, ROUND(${productsTable.donation} * ${factor})::int)`,
+          salePrice: sql`GREATEST(1, ROUND(${productsTable.price} * ${factor})::int)`,
         })
         .where(inArray(productsTable.id, ids));
     }

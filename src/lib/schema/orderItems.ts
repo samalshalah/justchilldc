@@ -9,7 +9,7 @@ export const orderItemsTable = pgTable("order_items", {
   productId: integer("product_id").notNull().references(() => productsTable.id),
   productName: text("product_name").notNull(),
   quantity: integer("quantity").notNull(),
-  donationPerItem: integer("donation_per_item").notNull(),
+  pricePerItem: integer("price_per_item").notNull(),
 });
 
 export const insertOrderItemSchema = z.object({
@@ -17,7 +17,7 @@ export const insertOrderItemSchema = z.object({
   productId: z.number().int(),
   productName: z.string(),
   quantity: z.number().int(),
-  donationPerItem: z.number().int(),
+  pricePerItem: z.number().int(),
 });
 export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 export type OrderItem = typeof orderItemsTable.$inferSelect;

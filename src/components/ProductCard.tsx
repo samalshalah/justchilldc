@@ -34,7 +34,7 @@ function getUpsellDeal(
   cartTotal: number
 ): { label: string; color: string } | null {
   const today = new Date().getDay();
-  const newTotal = cartTotal + product.donation;
+  const newTotal = cartTotal + product.price;
 
   for (const deal of deals) {
     if (!isDealActive(deal)) continue;
@@ -87,7 +87,7 @@ function getUpsellDeal(
 }
 
 export function ProductCard({ product, index = 0, priority = false }: ProductCardProps) {
-  const { addItem, items, totalDonation } = useCart();
+  const { addItem, items, totalPrice } = useCart();
   const settings = useSettings();
   const sc = settings.shop_config ?? {};
   const mc = settings.menu_config ?? {};
@@ -146,11 +146,11 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
     ? (settings.deal_rules ?? []).filter((d) => isDealActive(d))
     : [];
   const upsellDeal = mounted
-    ? getUpsellDeal(product, enabledDeals, cartQty, totalDonation)
+    ? getUpsellDeal(product, enabledDeals, cartQty, totalPrice)
     : null;
   const savings =
-    product.salePrice && product.salePrice < product.donation
-      ? product.donation - product.salePrice
+    product.salePrice && product.salePrice < product.price
+      ? product.price - product.salePrice
       : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -158,7 +158,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
     addItem({
       productId: product.id,
       name: displayName,
-      donation: product.donation,
+      price: product.price,
       imageUrl: product.imageUrl,
       imageType: product.imageType,
       brandLogoUrl: product.brandLogoUrl ?? null,
@@ -264,10 +264,10 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
           {showSaleBadge && product.salePrice ? (
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold text-accent">${product.salePrice}</span>
-              <span className="text-sm text-foreground/40 line-through">${product.donation}</span>
+              <span className="text-sm text-foreground/40 line-through">${product.price}</span>
             </div>
           ) : (
-            <span className="text-lg font-bold text-foreground">${product.donation}</span>
+            <span className="text-lg font-bold text-foreground">${product.price}</span>
           )}
         </div>
         <button

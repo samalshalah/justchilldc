@@ -83,7 +83,7 @@ export default async function OrderConfirmationPage({
                   {item.quantity} × {item.productName}
                 </span>
                 <span className="text-muted-foreground">
-                  ${item.donationPerItem * item.quantity}
+                  ${item.pricePerItem * item.quantity}
                 </span>
               </li>
             ))}
@@ -91,7 +91,7 @@ export default async function OrderConfirmationPage({
 
           <div className="flex justify-between items-center pt-4 border-t border-border font-bold">
             <span className="text-foreground">Total</span>
-            <span className="text-2xl text-accent">${order.totalDonation}</span>
+            <span className="text-2xl text-accent">${order.totalPrice}</span>
           </div>
         </div>
 

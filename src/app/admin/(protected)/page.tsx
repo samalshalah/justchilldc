@@ -30,7 +30,7 @@ async function getDashboardStats() {
       .where(gte(ordersTable.createdAt, today));
     const [revenue] = await db
       .select({
-        total: sql<number>`COALESCE(SUM(${ordersTable.totalDonation}), 0)::int`,
+        total: sql<number>`COALESCE(SUM(${ordersTable.totalPrice}), 0)::int`,
       })
       .from(ordersTable)
       .where(gte(ordersTable.createdAt, today));

@@ -58,7 +58,7 @@ export interface ImportRowInput {
   category: string;
   brand: string;
   strainName: string;
-  donation: number;
+  price: number;
   quantity: number;
   thc: string;
   cbd: string;
@@ -238,7 +238,7 @@ export async function runImport(rows: ImportRowInput[]): Promise<ImportResult> {
         strain: row.strainType,
         thc: row.thc || "—",
         cbd: row.cbd || "0%",
-        donation: Math.max(0, Math.round(row.donation)),
+        price: Math.max(0, Math.round(row.price)),
         imageType: imageTypeFor(row.category),
         description,
         weight: "",

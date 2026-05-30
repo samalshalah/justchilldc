@@ -83,7 +83,7 @@ export function ShopClient({
   const [showInStockOnly, setShowInStockOnly] = useState(false);
 
   const allPrices = useMemo(
-    () => products.map((p) => p.salePrice ?? p.donation),
+    () => products.map((p) => p.salePrice ?? p.price),
     [products]
   );
   const priceMin = useMemo(
@@ -164,7 +164,7 @@ export function ShopClient({
     }
     if (config.sidebar.showPrice) {
       result = result.filter((p) => {
-        const price = p.salePrice ?? p.donation;
+        const price = p.salePrice ?? p.price;
         return price >= minPrice && price <= maxPrice;
       });
     }
@@ -172,11 +172,11 @@ export function ShopClient({
     switch (sortBy) {
       case "price_asc":
         return [...result].sort(
-          (a, b) => (a.salePrice ?? a.donation) - (b.salePrice ?? b.donation)
+          (a, b) => (a.salePrice ?? a.price) - (b.salePrice ?? b.price)
         );
       case "price_desc":
         return [...result].sort(
-          (a, b) => (b.salePrice ?? b.donation) - (a.salePrice ?? a.donation)
+          (a, b) => (b.salePrice ?? b.price) - (a.salePrice ?? a.price)
         );
       case "name_asc":
         return [...result].sort((a, b) => a.name.localeCompare(b.name));

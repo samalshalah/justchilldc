@@ -20,7 +20,7 @@ export function AddToCartButton({ product }: { product: Product }) {
       {
         productId: product.id,
         name: product.name,
-        donation: product.donation,
+        price: product.price,
         imageUrl: product.imageUrl,
         imageType: product.imageType,
         brandLogoUrl: product.brandLogoUrl ?? null,
@@ -68,7 +68,7 @@ export function AddToCartButton({ product }: { product: Product }) {
         ) : !inStock ? (
           "Out of stock"
         ) : (
-          <>Add to Bag · ${product.donation * quantity}</>
+          <>Add to Bag · ${product.price * quantity}</>
         )}
       </button>
     </div>

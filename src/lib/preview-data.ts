@@ -16,7 +16,7 @@ type ImportRow = {
   category: string;
   brand: string;
   strainName: string;
-  donation: number;
+  price: number;
   quantity: number;
   thc: string;
   cbd: string;
@@ -197,7 +197,7 @@ export function importPreviewProducts(rows: ImportRow[]) {
         strain: row.strainType,
         thc: row.thc || "-",
         cbd: row.cbd || "0%",
-        donation: Math.max(0, Math.round(row.donation)),
+        price: Math.max(0, Math.round(row.price)),
         salePrice: null,
         imageType: imageTypeFor(category.name),
         imageUrl: null,

@@ -11,10 +11,10 @@ type OrderEmailOrder = Pick<
   | "customerPhone"
   | "preferredPickupTime"
   | "notes"
-  | "totalDonation"
+  | "totalPrice"
   | "createdAt"
 > & {
-  items: Pick<OrderItem, "productName" | "quantity" | "donationPerItem">[];
+  items: Pick<OrderItem, "productName" | "quantity" | "pricePerItem">[];
 };
 
 export interface OrderEmailMessage {
@@ -115,7 +115,7 @@ function buildItemsText(order: OrderEmailOrder): string {
   return order.items
     .map(
       (item) =>
-        `- ${item.quantity} x ${item.productName} (${money(item.donationPerItem)} each)`
+        `- ${item.quantity} x ${item.productName} (${money(item.pricePerItem)} each)`
     )
     .join("\n");
 }
@@ -132,7 +132,7 @@ function buildItemsHtml(order: OrderEmailOrder): string {
             ${item.quantity}
           </td>
           <td style="padding:10px 0;border-bottom:1px solid #e5e7eb;text-align:right;">
-            ${money(item.donationPerItem)}
+            ${money(item.pricePerItem)}
           </td>
         </tr>`
     )
@@ -202,7 +202,7 @@ export function buildOrderEmailMessages({
     "Items:",
     itemText,
     "",
-    `Total donation: ${money(order.totalDonation)}`,
+    `Total Price: ${money(order.totalPrice)}`,
     `View order: ${orderUrl}`,
     "",
     "Please bring a valid government-issued ID for pickup.",
@@ -240,7 +240,7 @@ export function buildOrderEmailMessages({
         </thead>
         <tbody>${itemRows}</tbody>
       </table>
-      <p style="font-size:18px;margin:18px 0;"><strong>Total donation: ${money(order.totalDonation)}</strong></p>
+      <p style="font-size:18px;margin:18px 0;"><strong>Total Price: ${money(order.totalPrice)}</strong></p>
       <p><a href="${safeOrderUrl}" style="color:#047857;font-weight:bold;">View your order</a></p>
       <p style="margin-top:18px;color:#6b7280;font-size:13px;">Please bring a valid government-issued ID for pickup.</p>
     </div>`;
@@ -269,7 +269,7 @@ export function buildOrderEmailMessages({
       "Items:",
       itemText,
       "",
-      `Total donation: ${money(order.totalDonation)}`,
+      `Total Price: ${money(order.totalPrice)}`,
       `Admin/order link: ${orderUrl}`,
     ].join("\n");
 
@@ -297,7 +297,7 @@ export function buildOrderEmailMessages({
           </thead>
           <tbody>${itemRows}</tbody>
         </table>
-        <p style="font-size:18px;margin:18px 0;"><strong>Total donation: ${money(order.totalDonation)}</strong></p>
+        <p style="font-size:18px;margin:18px 0;"><strong>Total Price: ${money(order.totalPrice)}</strong></p>
         <p><a href="${safeOrderUrl}" style="color:#047857;font-weight:bold;">Open order</a></p>
       </div>`;
 

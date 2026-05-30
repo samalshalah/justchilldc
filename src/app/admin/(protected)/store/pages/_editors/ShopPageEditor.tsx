@@ -328,7 +328,7 @@ export function ShopPageEditor({ settings }: { settings: SiteSettings }) {
             }
           />
           <Checkbox
-            label="Price: low → high"
+            label="Price: low to high"
             checked={cfg.sort_options?.price_asc ?? true}
             onChange={(e) =>
               update({
@@ -340,7 +340,7 @@ export function ShopPageEditor({ settings }: { settings: SiteSettings }) {
             }
           />
           <Checkbox
-            label="Price: high → low"
+            label="Price: high to low"
             checked={cfg.sort_options?.price_desc ?? true}
             onChange={(e) =>
               update({
@@ -386,8 +386,8 @@ export function ShopPageEditor({ settings }: { settings: SiteSettings }) {
             }
           >
             <option value="featured">Featured</option>
-            <option value="price_asc">Price: low → high</option>
-            <option value="price_desc">Price: high → low</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
             <option value="name_asc">Name: A → Z</option>
             <option value="name_desc">Name: Z → A</option>
           </Select>

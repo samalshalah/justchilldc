@@ -26,7 +26,7 @@ type FormShape = {
   strain: string;
   thc: string;
   cbd: string;
-  donation: string;
+  price: string;
   salePrice: string;
   description: string;
   imageType: string;
@@ -81,7 +81,7 @@ export function ProductForm({ categories, brands, product }: Props) {
       strain: product?.strain ?? "Hybrid",
       thc: product?.thc ?? "",
       cbd: product?.cbd ?? "0%",
-      donation: product?.donation?.toString() ?? "",
+      price: product?.price?.toString() ?? "",
       salePrice: product?.salePrice?.toString() ?? "",
       description: product?.description ?? "",
       imageType: product?.imageType ?? "flower",
@@ -108,7 +108,7 @@ export function ProductForm({ categories, brands, product }: Props) {
       strain: values.strain,
       thc: values.thc,
       cbd: values.cbd || "0%",
-      donation: parseInt(values.donation, 10),
+      price: parseInt(values.price, 10),
       salePrice: values.salePrice ? parseInt(values.salePrice, 10) : null,
       description: values.description.trim(),
       imageType: values.imageType || "flower",
@@ -232,11 +232,11 @@ export function ProductForm({ categories, brands, product }: Props) {
       <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
         <h2 className="font-semibold text-zinc-200">Pricing & Stock</h2>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Donation ($)" error={errors.donation?.message}>
+          <Field label="Price ($)" error={errors.price?.message}>
             <Input
               type="number"
               min={0}
-              {...register("donation", {
+              {...register("price", {
                 required: "Required",
                 valueAsNumber: false,
               })}

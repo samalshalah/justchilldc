@@ -33,7 +33,7 @@ const baseOrder = {
   preferredPickupTime: "Today after 5 PM",
   notes: "Please call when ready.",
   status: "pending",
-  totalDonation: 60,
+  totalPrice: 60,
   createdAt: new Date("2026-05-30T14:00:00Z"),
   items: [
     {
@@ -42,7 +42,7 @@ const baseOrder = {
       productId: 10,
       productName: "Blue Dream CBD",
       quantity: 2,
-      donationPerItem: 30,
+      pricePerItem: 30,
     },
   ],
 };

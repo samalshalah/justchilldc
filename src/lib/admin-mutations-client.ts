@@ -8,7 +8,7 @@ export interface ProductInput {
   strain: string;
   thc: string;
   cbd?: string;
-  donation: number;
+  price: number;
   salePrice?: number | null;
   imageType?: string;
   imageUrl?: string | null;
@@ -44,7 +44,7 @@ export interface ImportRowInput {
   category: string;
   brand: string;
   strainName: string;
-  donation: number;
+  price: number;
   quantity: number;
   thc: string;
   cbd: string;

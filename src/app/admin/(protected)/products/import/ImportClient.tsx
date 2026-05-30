@@ -156,7 +156,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
       category: r.category,
       brand: r.brand,
       strainName: r.strainName,
-      donation: r.donation,
+      price: r.price,
       quantity: r.quantity,
       thc: r.thc,
       cbd: r.cbd,
@@ -392,7 +392,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
                       {r.brand ? titleCase(r.brand) : "—"}
                     </td>
                     <td className="px-3 py-2 text-right font-mono">
-                      ${r.donation}
+                      ${r.price}
                     </td>
                     <td className="px-3 py-2 text-right font-mono">
                       {r.quantity}

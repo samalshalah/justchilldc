@@ -23,7 +23,7 @@ export interface ParsedRow {
   category: string;
   brand: string;
   strainName: string;
-  donation: number;
+  price: number;
   quantity: number;
   thc: string;
   cbd: string;
@@ -38,7 +38,7 @@ const HEADER_ALIASES: Record<keyof Omit<ParsedRow, "rawIndex" | "warnings">, str
   category: ["category", "master category"],
   brand: ["brand", "vendor"],
   strainName: ["strain"],
-  donation: ["current price", "price", "price (catalog)", "unit price (inventory)"],
+  price: ["current price", "price", "price (catalog)", "unit price (inventory)"],
   quantity: ["available", "quantity", "qty"],
   thc: ["thc", "calculated thc (mg)"],
   cbd: ["cbd"],
@@ -143,7 +143,7 @@ export function parseInventoryCsv(text: string): ParseResult {
     const rawCategory = get("category");
     const rawBrand = get("brand");
     const strainName = get("strainName");
-    const priceStr = get("donation");
+    const priceStr = get("price");
     const qtyStr = get("quantity");
     const thcRaw = get("thc");
     const cbdRaw = get("cbd");
@@ -159,8 +159,8 @@ export function parseInventoryCsv(text: string): ParseResult {
       errors.push({ row: i + 1, message: `Row ${i + 1} (SKU ${sku}): missing name` });
       continue;
     }
-    const donation = Math.round(parseFloat(priceStr) || 0);
-    if (donation <= 0) {
+    const price = Math.round(parseFloat(priceStr) || 0);
+    if (price <= 0) {
       errors.push({
         row: i + 1,
         message: `Row ${i + 1} (${name}): no price found; skipped`,
@@ -208,7 +208,7 @@ export function parseInventoryCsv(text: string): ParseResult {
       category,
       brand: rawBrand,
       strainName: strainName || "",
-      donation,
+      price,
       quantity: finalQty,
       thc,
       cbd,

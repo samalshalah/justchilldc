@@ -28,7 +28,7 @@ interface ProductInput {
   strain: string;
   thc: string;
   cbd?: string;
-  donation: number;
+  price: number;
   salePrice?: number | null;
   imageType?: string;
   imageUrl?: string | null;
@@ -64,7 +64,7 @@ interface ImportRowInput {
   category: string;
   brand: string;
   strainName: string;
-  donation: number;
+  price: number;
   quantity: number;
   thc: string;
   cbd: string;
@@ -291,7 +291,7 @@ async function bulkApplyDiscount(
       await db
         .update(productsTable)
         .set({
-          salePrice: sql`GREATEST(1, ROUND(${productsTable.donation} * ${factor})::int)`,
+          salePrice: sql`GREATEST(1, ROUND(${productsTable.price} * ${factor})::int)`,
         })
         .where(inArray(productsTable.id, ids));
     }
@@ -611,7 +611,7 @@ async function runImport(rows: ImportRowInput[]) {
         strain: row.strainType,
         thc: row.thc || "-",
         cbd: row.cbd || "0%",
-        donation: Math.max(0, Math.round(row.donation)),
+        price: Math.max(0, Math.round(row.price)),
         imageType: imageTypeFor(row.category),
         description,
         weight: "",

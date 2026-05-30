@@ -10,7 +10,7 @@ export const ordersTable = pgTable("orders", {
   preferredPickupTime: text("preferred_pickup_time").notNull(),
   notes: text("notes"),
   status: text("status").notNull().default("pending"),
-  totalDonation: integer("total_donation").notNull(),
+  totalPrice: integer("total_price").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -22,7 +22,7 @@ export const insertOrderSchema = z.object({
   preferredPickupTime: z.string(),
   notes: z.string().optional(),
   status: z.string().optional(),
-  totalDonation: z.number().int(),
+  totalPrice: z.number().int(),
 });
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 export type Order = typeof ordersTable.$inferSelect;

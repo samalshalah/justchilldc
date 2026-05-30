@@ -58,7 +58,7 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
   const {
     items,
     totalItems,
-    totalDonation,
+    totalPrice,
     removeItem,
     updateQuantity,
     clearCart,
@@ -71,9 +71,9 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
 
   const slots = useMemo(() => generatePickupSlots(schedule), [schedule]);
   const enabledDeals = (settings.deal_rules ?? []).filter((d) => d.enabled);
-  const bestDeal = computeBestDeal(enabledDeals, items, totalDonation);
+  const bestDeal = computeBestDeal(enabledDeals, items, totalPrice);
   const discount = bestDeal?.discountAmount ?? 0;
-  const finalTotal = Math.max(0, totalDonation - discount);
+  const finalTotal = Math.max(0, totalPrice - discount);
   const tipAmount = tipPercent != null ? (finalTotal * tipPercent) / 100 : 0;
   const orderTotal = finalTotal + tipAmount;
   const belowMinOrder =
@@ -224,7 +224,7 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
                           {item.name}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          ${item.donation} each
+                          ${item.price} each
                         </p>
                       </div>
                       <div className="inline-flex items-center bg-background border border-border rounded-lg overflow-hidden">
@@ -269,7 +269,7 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
               <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-2">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
-                  <span>${totalDonation.toFixed(2)}</span>
+                  <span>${totalPrice.toFixed(2)}</span>
                 </div>
                 {discount > 0 && bestDeal && (
                   <div className="flex justify-between items-center text-sm">
