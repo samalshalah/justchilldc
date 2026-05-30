@@ -8,6 +8,18 @@ interface Props {
   onChange: (newPath: string) => void;
 }
 
+function imageSrc(value: string): string {
+  if (
+    value.startsWith("/images/") ||
+    value.startsWith("/api/storage/") ||
+    value.startsWith("http://") ||
+    value.startsWith("https://")
+  ) {
+    return value;
+  }
+  return `/api/storage${value}`;
+}
+
 export function AdminImageUploader({ value, onChange }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +63,7 @@ export function AdminImageUploader({ value, onChange }: Props) {
         <div className="flex items-start gap-3">
           <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-white border border-zinc-200">
             <img
-              src={`/api/storage${value}`}
+              src={imageSrc(value)}
               alt="preview"
               className="h-full w-full object-contain"
             />

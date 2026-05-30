@@ -16,6 +16,7 @@ type ProductImageInput = {
 function storageUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   if (
+    path.startsWith("/images/") ||
     path.startsWith("/api/storage/") ||
     path.startsWith("http://") ||
     path.startsWith("https://")
@@ -52,13 +53,13 @@ export function productImageFitClass(
  */
 const CATEGORY_DEFAULTS: Array<[string[], string]> = [
   [["flower", "flowers", "bud", "buds"], "/images/categories/flower.jpg"],
-  [["edible", "edibles", "chocolate", "gummy", "gummies", "food", "capsule", "capsules", "soft gel", "softgel"], "/images/categories/edibles.jpg"],
+  [["edible", "edibles", "chocolate", "gummy", "gummies", "food"], "/images/categories/edibles.jpg"],
   [["pre-roll", "pre-rolls", "preroll", "prerolls", "joint", "joints", "cone", "cones"], "/images/categories/pre-roll.jpg"],
   [["concentrate", "concentrates", "wax", "shatter", "rosin", "resin", "dab", "dabs", "hash"], "/images/categories/concentrates.jpg"],
   [["vape", "vapes", "vaporizer", "vaporizers", "cartridge", "cartridges", "cart", "carts", "pen", "pens"], "/images/categories/vaporizer.jpg"],
   [["tincture", "tinctures", "drops", "sublingual"], "/images/categories/tinctures.jpg"],
   [["topical", "topicals", "cream", "creams", "lotion", "lotions", "balm", "balms", "salve", "salves"], "/images/categories/topicals.jpg"],
-  [["cbd", "hemp"], "/images/categories/cbd.jpg"],
+  [["cbd", "hemp", "capsule", "capsules", "soft gel", "softgel"], "/images/categories/cbd.jpg"],
   [["seed", "seeds"], "/images/categories/seeds.jpg"],
   [["clone", "clones", "plant", "plants", "seedling", "seedlings"], "/images/categories/clones.jpg"],
   [["accessory", "accessories", "gear", "pipe", "pipes", "grinder", "grinders", "glass"], "/images/categories/accessories.jpg"],
