@@ -323,13 +323,21 @@ export async function sendOrderEmailMessages({
 
   for (const message of messages) {
     try {
+      const payload = {
+        from: message.from,
+        to: message.to,
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      };
+
       const res = await fetcher("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(message),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {

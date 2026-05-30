@@ -137,3 +137,33 @@ test("builds one store notification for each configured notification email", () 
   assert.equal(messages[1].reply_to, "customer@example.com");
   assert.equal(messages[2].reply_to, "customer@example.com");
 });
+
+test("send payload only includes Resend REST email fields", async () => {
+  let parsedBody;
+  const response = await mod.sendOrderEmailMessages({
+    apiKey: "re_test",
+    messages: [
+      {
+        from: "Just Chill DC <orders@justchilldc.com>",
+        to: "customer@example.com",
+        subject: "Test",
+        html: "<p>Test</p>",
+        text: "Test",
+        reply_to: "staff@example.com",
+      },
+    ],
+    fetcher: async (_url, init) => {
+      parsedBody = JSON.parse(init.body);
+      return new Response(JSON.stringify({ id: "email_123" }), { status: 200 });
+    },
+  });
+
+  assert.equal(response.sent, 1);
+  assert.deepEqual(Object.keys(parsedBody).sort(), [
+    "from",
+    "html",
+    "subject",
+    "text",
+    "to",
+  ]);
+});
