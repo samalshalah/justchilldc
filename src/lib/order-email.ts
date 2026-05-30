@@ -69,6 +69,20 @@ function normalizeEmail(value: string | null | undefined): string | null {
   return email;
 }
 
+function normalizeEmailList(value: string | null | undefined): string[] {
+  const seen = new Set<string>();
+  const emails: string[] = [];
+  for (const part of clean(value).split(/[,\n;]/)) {
+    const email = normalizeEmail(part);
+    if (!email) continue;
+    const key = email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    emails.push(email);
+  }
+  return emails;
+}
+
 function normalizeBaseUrl(value: string): string {
   return clean(value).replace(/\/+$/, "") || "https://justchilldc.com";
 }
@@ -148,9 +162,10 @@ export function buildOrderEmailMessages({
   const storeName = displayName(settings.store?.name);
   const baseUrl = normalizeBaseUrl(siteUrl);
   const orderUrl = `${baseUrl}/order/${order.id}`;
-  const storeRecipient = normalizeEmail(
+  const storeRecipients = normalizeEmailList(
     settings.store?.order_confirmation_email ?? settings.contact?.email
   );
+  const primaryStoreRecipient = storeRecipients[0];
   const storePhone = firstPresent(settings.contact?.phone, settings.location?.phone, settings.store?.phone);
   const pickupAddress = firstPresent(settings.location?.address, settings.store?.address);
   const from = `${storeName} <${fromAddress}>`;
@@ -225,11 +240,11 @@ export function buildOrderEmailMessages({
       subject: `${storeName} pickup order ${order.confirmationCode}`,
       html: customerHtml,
       text: customerText,
-      reply_to: storeRecipient ?? undefined,
+      reply_to: primaryStoreRecipient,
     },
   ];
 
-  if (storeRecipient) {
+  if (storeRecipients.length > 0) {
     const storeText = [
       `New pickup order for ${storeName}`,
       `Confirmation code: ${order.confirmationCode}`,
@@ -274,14 +289,16 @@ export function buildOrderEmailMessages({
         <p><a href="${safeOrderUrl}" style="color:#047857;font-weight:bold;">Open order</a></p>
       </div>`;
 
-    messages.push({
-      from,
-      to: storeRecipient,
-      subject: `New pickup order ${order.confirmationCode} - ${storeName}`,
-      html: storeHtml,
-      text: storeText,
-      reply_to: customerEmail,
-    });
+    for (const storeRecipient of storeRecipients) {
+      messages.push({
+        from,
+        to: storeRecipient,
+        subject: `New pickup order ${order.confirmationCode} - ${storeName}`,
+        html: storeHtml,
+        text: storeText,
+        reply_to: customerEmail,
+      });
+    }
   }
 
   return messages;

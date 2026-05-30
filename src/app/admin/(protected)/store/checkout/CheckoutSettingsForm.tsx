@@ -100,8 +100,8 @@ export function CheckoutSettingsForm({
           }
         />
         <Field
-          label="Store notification email"
-          hint="Customers always receive a confirmation when order emails are enabled. Add the store email here to also notify staff."
+          label="Store notification emails"
+          hint="Customers always receive a confirmation when order emails are enabled. Add one or more staff emails separated by commas."
         >
           <Input
             type="email"

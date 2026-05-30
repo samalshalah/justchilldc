@@ -115,3 +115,25 @@ test("uses contact email as the store notification fallback", () => {
   assert.equal(messages.length, 2);
   assert.equal(messages[1].to, "manager@example.com");
 });
+
+test("builds one store notification for each configured notification email", () => {
+  const messages = mod.buildOrderEmailMessages({
+    settings: {
+      ...baseSettings,
+      store: {
+        ...baseSettings.store,
+        order_confirmation_email:
+          "justchill1314@icloud.com, sam.alshalah1@gmail.com",
+      },
+    },
+    order: baseOrder,
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.equal(messages.length, 3);
+  assert.equal(messages[1].to, "justchill1314@icloud.com");
+  assert.equal(messages[2].to, "sam.alshalah1@gmail.com");
+  assert.equal(messages[1].reply_to, "customer@example.com");
+  assert.equal(messages[2].reply_to, "customer@example.com");
+});
