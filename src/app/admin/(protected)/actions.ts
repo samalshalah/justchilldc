@@ -131,7 +131,10 @@ export async function upsertProduct(input: ProductInput) {
 
 export async function deleteProduct(id: number) {
   await assertAdmin();
-  await db.delete(productsTable).where(eq(productsTable.id, id));
+  await db
+    .update(productsTable)
+    .set({ archivedAt: new Date(), inStock: false, featured: false })
+    .where(eq(productsTable.id, id));
   revalidatePath("/admin/products");
   revalidatePath("/shop");
   return { ok: true };
@@ -277,7 +280,10 @@ function revalidateAfterProductChange() {
 export async function bulkDeleteProducts(ids: number[]): Promise<{ deleted: number }> {
   await assertAdmin();
   if (ids.length === 0) return { deleted: 0 };
-  await db.delete(productsTable).where(inArray(productsTable.id, ids));
+  await db
+    .update(productsTable)
+    .set({ archivedAt: new Date(), inStock: false, featured: false })
+    .where(inArray(productsTable.id, ids));
   revalidateAfterProductChange();
   return { deleted: ids.length };
 }

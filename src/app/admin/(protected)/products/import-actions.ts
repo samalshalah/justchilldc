@@ -245,6 +245,7 @@ export async function runImport(rows: ImportRowInput[]): Promise<ImportResult> {
         sku: row.sku,
         quantity: row.quantity,
         inStock: row.inStock && row.quantity > 0,
+        archivedAt: null,
       };
 
       // Find existing by SKU (latest insertion wins on dupes)

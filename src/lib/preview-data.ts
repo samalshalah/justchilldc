@@ -222,6 +222,7 @@ export function importPreviewProducts(rows: ImportRow[]) {
         sku: row.sku,
         quantity: row.quantity,
         lowStockThreshold: 5,
+        archivedAt: null,
       };
 
       const existingIdx = s.products.findIndex((p) => p.sku === row.sku);

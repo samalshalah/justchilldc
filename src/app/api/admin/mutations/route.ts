@@ -143,7 +143,10 @@ async function upsertProduct(input: ProductInput) {
 
 async function deleteProduct(id: number) {
   const { db, productsTable } = await import("@/lib/db");
-  await db.delete(productsTable).where(eq(productsTable.id, id));
+  await db
+    .update(productsTable)
+    .set({ archivedAt: new Date(), inStock: false, featured: false })
+    .where(eq(productsTable.id, id));
   revalidateAfterProductChange();
   return { ok: true };
 }
@@ -261,7 +264,10 @@ async function setOrderStatus(
 async function bulkDeleteProducts(ids: number[]) {
   const { db, productsTable } = await import("@/lib/db");
   if (ids.length === 0) return { deleted: 0 };
-  await db.delete(productsTable).where(inArray(productsTable.id, ids));
+  await db
+    .update(productsTable)
+    .set({ archivedAt: new Date(), inStock: false, featured: false })
+    .where(inArray(productsTable.id, ids));
   revalidateAfterProductChange();
   return { deleted: ids.length };
 }
@@ -618,6 +624,7 @@ async function runImport(rows: ImportRowInput[]) {
         sku: row.sku,
         quantity: row.quantity,
         inStock: row.inStock && row.quantity > 0,
+        archivedAt: null,
       };
 
       const existing = await db

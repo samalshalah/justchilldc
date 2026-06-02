@@ -7,7 +7,7 @@
  */
 
 import "server-only";
-import { eq, and, desc, getTableColumns } from "drizzle-orm";
+import { eq, and, desc, getTableColumns, isNull } from "drizzle-orm";
 import {
   db,
   productsTable,
@@ -40,7 +40,7 @@ export async function getProducts(opts: {
 } = {}): Promise<Product[]> {
   if (isLocalPreviewMode()) return getPreviewProducts(opts);
   try {
-    const conditions = [];
+    const conditions = [isNull(productsTable.archivedAt)];
     if (opts.category) conditions.push(eq(productsTable.category, opts.category));
     if (opts.featured !== undefined)
       conditions.push(eq(productsTable.featured, opts.featured));
@@ -84,7 +84,7 @@ export async function getProductById(id: number): Promise<Product | null> {
       })
       .from(productsTable)
       .leftJoin(brandsTable, eq(productsTable.brandId, brandsTable.id))
-      .where(eq(productsTable.id, id))
+      .where(and(eq(productsTable.id, id), isNull(productsTable.archivedAt)))
       .limit(1);
     return row ?? null;
   } catch (err) {

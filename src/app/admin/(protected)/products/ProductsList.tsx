@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Trash2,
   Tag,
@@ -38,11 +39,13 @@ interface Props {
 }
 
 export function ProductsList({ products }: Props) {
+  const router = useRouter();
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [search, setSearch] = useState("");
   const [bulkMode, setBulkMode] = useState<BulkMode>(null);
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<string | null>(null);
+  const [removedIds, setRemovedIds] = useState<Set<number>>(() => new Set());
   /** Per-row optimistic override of `featured` — wins over server value. */
   const [featuredOverrides, setFeaturedOverrides] = useState<
     Map<number, boolean>
@@ -53,15 +56,16 @@ export function ProductsList({ products }: Props) {
   );
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return products;
+    const visibleProducts = products.filter((p) => !removedIds.has(p.id));
+    if (!search.trim()) return visibleProducts;
     const q = search.trim().toLowerCase();
-    return products.filter(
+    return visibleProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q) ||
         (p.sku ?? "").toLowerCase().includes(q)
     );
-  }, [products, search]);
+  }, [products, removedIds, search]);
 
   const allSelected =
     filtered.length > 0 && filtered.every((p) => selected.has(p.id));
@@ -94,6 +98,14 @@ export function ProductsList({ products }: Props) {
 
   const clearSelection = () => setSelected(new Set());
 
+  const markRemoved = (ids: number[]) => {
+    setRemovedIds((current) => {
+      const next = new Set(current);
+      for (const id of ids) next.add(id);
+      return next;
+    });
+  };
+
   const flash = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
@@ -107,6 +119,7 @@ export function ProductsList({ products }: Props) {
         const res = await bulkSetInStock(ids, inStock);
         flash(`Marked ${res.updated} ${inStock ? "in stock" : "out of stock"}`);
         clearSelection();
+        router.refresh();
       } catch (err) {
         flash(err instanceof Error ? err.message : "Action failed");
       }
@@ -123,6 +136,7 @@ export function ProductsList({ products }: Props) {
           `Marked ${res.updated} ${featured ? "featured" : "not featured"}`
         );
         clearSelection();
+        router.refresh();
       } catch (err) {
         flash(err instanceof Error ? err.message : "Action failed");
       }
@@ -148,6 +162,7 @@ export function ProductsList({ products }: Props) {
     bulkSetFeatured([id], next)
       .then(() => {
         flash(next ? "Featured" : "Unfeatured");
+        router.refresh();
       })
       .catch((err) => {
         setFeaturedOverrides((m) => {
@@ -182,6 +197,7 @@ export function ProductsList({ products }: Props) {
         const res = await bulkRegenerateDescriptions(ids);
         flash(`Regenerated ${res.updated} description(s)`);
         clearSelection();
+        router.refresh();
       } catch (err) {
         flash(err instanceof Error ? err.message : "Action failed");
       }
@@ -395,7 +411,13 @@ export function ProductsList({ products }: Props) {
                   <SingleDeleteButton
                     id={p.id}
                     name={p.name}
-                    onDeleted={() => clearSelection()}
+                    onDeleted={() => {
+                      markRemoved([p.id]);
+                      clearSelection();
+                      flash("Product deleted");
+                      router.refresh();
+                    }}
+                    onError={(message) => flash(message)}
                   />
                 </div>
               </div>
@@ -435,9 +457,11 @@ export function ProductsList({ products }: Props) {
             startTransition(async () => {
               try {
                 const res = await bulkDeleteProducts(ids);
+                markRemoved(ids);
                 flash(`Deleted ${res.deleted} product(s)`);
                 clearSelection();
                 setBulkMode(null);
+                router.refresh();
               } catch (err) {
                 flash(err instanceof Error ? err.message : "Delete failed");
               }
@@ -453,17 +477,23 @@ function SingleDeleteButton({
   id,
   name,
   onDeleted,
+  onError,
 }: {
   id: number;
   name: string;
   onDeleted: () => void;
+  onError: (message: string) => void;
 }) {
   const [pending, startTransition] = useTransition();
   const onClick = () => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
     startTransition(async () => {
-      await deleteProduct(id);
-      onDeleted();
+      try {
+        await deleteProduct(id);
+        onDeleted();
+      } catch (err) {
+        onError(err instanceof Error ? err.message : "Delete failed");
+      }
     });
   };
   return (
