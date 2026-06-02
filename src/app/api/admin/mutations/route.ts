@@ -142,11 +142,14 @@ async function upsertProduct(input: ProductInput) {
 }
 
 async function deleteProduct(id: number) {
-  const { db, productsTable } = await import("@/lib/db");
-  await db
-    .update(productsTable)
-    .set({ archivedAt: new Date(), inStock: false, featured: false })
-    .where(eq(productsTable.id, id));
+  const { db, productsTable, orderItemsTable } = await import("@/lib/db");
+  await db.transaction(async (tx) => {
+    await tx
+      .update(orderItemsTable)
+      .set({ productId: null })
+      .where(eq(orderItemsTable.productId, id));
+    await tx.delete(productsTable).where(eq(productsTable.id, id));
+  });
   revalidateAfterProductChange();
   return { ok: true };
 }
@@ -262,12 +265,15 @@ async function setOrderStatus(
 }
 
 async function bulkDeleteProducts(ids: number[]) {
-  const { db, productsTable } = await import("@/lib/db");
+  const { db, productsTable, orderItemsTable } = await import("@/lib/db");
   if (ids.length === 0) return { deleted: 0 };
-  await db
-    .update(productsTable)
-    .set({ archivedAt: new Date(), inStock: false, featured: false })
-    .where(inArray(productsTable.id, ids));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(orderItemsTable)
+      .set({ productId: null })
+      .where(inArray(orderItemsTable.productId, ids));
+    await tx.delete(productsTable).where(inArray(productsTable.id, ids));
+  });
   revalidateAfterProductChange();
   return { deleted: ids.length };
 }

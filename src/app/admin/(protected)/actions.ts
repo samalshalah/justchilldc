@@ -16,6 +16,7 @@ import { eq, sql, inArray } from "drizzle-orm";
 import {
   db,
   productsTable,
+  orderItemsTable,
   ordersTable,
   brandsTable,
   categoriesTable,
@@ -131,10 +132,13 @@ export async function upsertProduct(input: ProductInput) {
 
 export async function deleteProduct(id: number) {
   await assertAdmin();
-  await db
-    .update(productsTable)
-    .set({ archivedAt: new Date(), inStock: false, featured: false })
-    .where(eq(productsTable.id, id));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(orderItemsTable)
+      .set({ productId: null })
+      .where(eq(orderItemsTable.productId, id));
+    await tx.delete(productsTable).where(eq(productsTable.id, id));
+  });
   revalidatePath("/admin/products");
   revalidatePath("/shop");
   return { ok: true };
@@ -280,10 +284,13 @@ function revalidateAfterProductChange() {
 export async function bulkDeleteProducts(ids: number[]): Promise<{ deleted: number }> {
   await assertAdmin();
   if (ids.length === 0) return { deleted: 0 };
-  await db
-    .update(productsTable)
-    .set({ archivedAt: new Date(), inStock: false, featured: false })
-    .where(inArray(productsTable.id, ids));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(orderItemsTable)
+      .set({ productId: null })
+      .where(inArray(orderItemsTable.productId, ids));
+    await tx.delete(productsTable).where(inArray(productsTable.id, ids));
+  });
   revalidateAfterProductChange();
   return { deleted: ids.length };
 }
