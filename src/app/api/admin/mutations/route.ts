@@ -8,11 +8,11 @@ import { DEFAULTS } from "@/lib/defaults";
 import { titleCase } from "@/lib/import-csv";
 import { isLocalPreviewMode } from "@/lib/preview";
 import {
-  cleanProductName,
   generateBrandSeoDescription,
   generateCategorySeoDescription,
   generateSeoDescription,
   generateSeoTitle,
+  normalizeImportedProductName,
   seoTitleCase,
 } from "@/lib/seo-generator";
 import type { StrainType } from "@/lib/strain-database";
@@ -600,7 +600,7 @@ async function runImport(rows: ImportRowInput[]) {
 
     try {
       const brand = row.brand ? brandByName.get(row.brand.toLowerCase()) : undefined;
-      const productName = seoTitleCase(cleanProductName(row.name));
+      const productName = normalizeImportedProductName(row.name);
       const description =
         row.description?.trim() ||
         generateSeoDescription(

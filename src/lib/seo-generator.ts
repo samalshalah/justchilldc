@@ -161,6 +161,10 @@ export function cleanProductName(raw: string): string {
     .trim();
 }
 
+export function normalizeImportedProductName(raw: string): string {
+  return raw ? raw.trim().replace(/\s+/g, " ") : "";
+}
+
 export function seoTitleCase(s: string): string {
   return normalizeAcronyms(titleCase(cleanProductName(s)));
 }

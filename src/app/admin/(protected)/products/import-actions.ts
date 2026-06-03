@@ -19,11 +19,10 @@ import { cookies } from "next/headers";
 import { createHmac } from "crypto";
 import { titleCase } from "@/lib/import-csv";
 import {
-  cleanProductName,
   generateBrandSeoDescription,
   generateCategorySeoDescription,
   generateSeoDescription,
-  seoTitleCase,
+  normalizeImportedProductName,
 } from "@/lib/seo-generator";
 import { DEFAULTS } from "@/lib/defaults";
 import { isLocalPreviewMode } from "@/lib/preview";
@@ -217,7 +216,7 @@ export async function runImport(rows: ImportRowInput[]): Promise<ImportResult> {
         ? brandByName.get(row.brand.toLowerCase())
         : undefined;
 
-      const productName = seoTitleCase(cleanProductName(row.name));
+      const productName = normalizeImportedProductName(row.name);
       const description = generateSeoDescription(
         {
           name: productName,

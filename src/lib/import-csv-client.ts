@@ -7,7 +7,7 @@
  * upload the entire file just to show a preview.
  */
 
-import { cleanProductName, seoTitleCase } from "./seo-generator";
+import { normalizeImportedProductName } from "./seo-generator";
 
 export interface ParsedRowClient {
   sku: string;
@@ -135,7 +135,7 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     };
 
     const sku = get("sku");
-    const name = seoTitleCase(cleanProductName(get("name")));
+    const name = normalizeImportedProductName(get("name"));
     const rawCategory = get("category");
     const rawBrand = get("brand");
     const strainName = get("strainName");

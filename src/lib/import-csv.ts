@@ -15,7 +15,7 @@
  */
 
 import "server-only";
-import { cleanProductName, seoTitleCase } from "./seo-generator";
+import { normalizeImportedProductName } from "./seo-generator";
 
 export interface ParsedRow {
   sku: string;
@@ -139,7 +139,7 @@ export function parseInventoryCsv(text: string): ParseResult {
     };
 
     const sku = get("sku");
-    const name = seoTitleCase(cleanProductName(get("name")));
+    const name = normalizeImportedProductName(get("name"));
     const rawCategory = get("category");
     const rawBrand = get("brand");
     const strainName = get("strainName");

@@ -2,10 +2,10 @@ import "server-only";
 import type { Brand, Category, Product } from "./data";
 import type { SiteSettings } from "./types";
 import {
-  cleanProductName,
   generateBrandSeoDescription,
   generateCategorySeoDescription,
   generateSeoDescription,
+  normalizeImportedProductName,
   seoTitleCase,
 } from "./seo-generator";
 import { DEFAULTS } from "./defaults";
@@ -189,7 +189,7 @@ export function importPreviewProducts(rows: ImportRow[]) {
       if (brand && s.brands.length > beforeBrands) result.brandsCreated.push(brand.name);
       if (s.categories.length > beforeCategories) result.categoriesCreated.push(category.name);
 
-      const productName = seoTitleCase(cleanProductName(row.name));
+      const productName = normalizeImportedProductName(row.name);
       const productValues = {
         name: productName,
         category: category.name,
