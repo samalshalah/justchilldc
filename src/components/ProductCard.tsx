@@ -86,6 +86,15 @@ function getUpsellDeal(
   return null;
 }
 
+function hasThcValue(value: string | null | undefined): value is string {
+  const v = value?.trim();
+  return Boolean(v) && v !== "-" && v !== "\u2014" && v !== "\u00e2\u20ac\u201d";
+}
+
+function thcBadgeLabel(value: string): string {
+  return `THC: ${value}`;
+}
+
 export function ProductCard({ product, index = 0, priority = false }: ProductCardProps) {
   const { addItem, items, totalPrice } = useCart();
   const settings = useSettings();
@@ -167,7 +176,10 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
   };
 
   const showStrainBadge = sc.card_show_strain_badge ?? mc.show_strain_badge ?? true;
-  const showThcBadge = sc.card_show_thc_badge ?? mc.show_thc_badge ?? true;
+  const showThcBadgeSetting = sc.card_show_thc_badge ?? mc.show_thc_badge ?? true;
+  const productThc = hasThcValue(product.thc) ? product.thc : "";
+  const showThcBadge = showThcBadgeSetting && Boolean(productThc);
+  const thcLabel = productThc ? thcBadgeLabel(productThc) : "";
 
   const imageBadges = badgePosition === "image" && (showStrainBadge || showThcBadge) && (
     <div className="pointer-events-none absolute left-3 top-3 z-20 flex flex-col gap-1.5">
@@ -178,7 +190,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
       )}
       {showThcBadge && product.thc && product.thc !== "—" && (
         <span className="inline-flex w-max items-center gap-1 rounded-full border border-border bg-black/70 px-2.5 py-1 text-[11px] font-bold text-foreground backdrop-blur-md">
-          <Leaf className="w-3 h-3" /> {product.thc} THC
+          <Leaf className="w-3 h-3" /> {thcLabel}
         </span>
       )}
     </div>
@@ -193,7 +205,7 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
       )}
       {showThcBadge && product.thc && product.thc !== "—" && (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-          <Leaf className="w-2.5 h-2.5" /> {product.thc} THC
+          <Leaf className="w-2.5 h-2.5" /> {thcLabel}
         </span>
       )}
     </div>
