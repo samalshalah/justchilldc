@@ -8,13 +8,16 @@
  * Quirks of the Dutchie format we handle:
  *   - Every cell is wrapped as `="value"` (Excel-quoted, preserves leading
  *     zeros on SKUs). We strip the leading `=` before unquoting.
- *   - THC is a percent string for flower ("21.82 %") and mg/g for edibles
- *     ("0.06 mg/g"). For edibles we prefer "Calculated THC (mg)" instead.
+ *   - Some exports only include "Calculated THC (mg)". For flower,
+ *     pre-rolls, and concentrates we convert that package total to a
+ *     display percentage when package weight is present. Edibles/capsules
+ *     stay in mg.
  *   - "Strain" holds the strain *name*, not Indica/Sativa/Hybrid. We
  *     default everything to Hybrid and let the admin fix in bulk.
  */
 
 import "server-only";
+import { formatImportedThc } from "./potency";
 import { normalizeImportedProductName } from "./seo-generator";
 
 export interface ParsedRow {
@@ -146,6 +149,9 @@ export function parseInventoryCsv(text: string): ParseResult {
     const priceStr = get("price");
     const qtyStr = get("quantity");
     const thcRaw = get("thc");
+    const calculatedThcIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
+    const calculatedThcRaw =
+      calculatedThcIdx >= 0 ? unwrapCell(cells[calculatedThcIdx] ?? "") : "";
     const cbdRaw = get("cbd");
     const inStockRaw = get("inStock");
 
@@ -172,20 +178,12 @@ export function parseInventoryCsv(text: string): ParseResult {
     const finalQty = isNaN(quantity) ? 0 : quantity;
 
     const category = normalizeCategory(rawCategory);
-    let thc = "";
-    if (thcRaw) {
-      thc = thcRaw.replace(/\s+/g, "").replace("%", "%").trim();
-      if (category === "Edibles" || category === "Capsules") {
-        const mgIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
-        if (mgIdx >= 0) {
-          const mg = parseFloat(unwrapCell(cells[mgIdx] ?? ""));
-          if (!isNaN(mg) && mg > 0) thc = `${Math.round(mg)}mg`;
-          else thc = "";
-        } else if (thcRaw.includes("mg/g")) {
-          thc = "";
-        }
-      }
-    }
+    const thc = formatImportedThc({
+      category,
+      productName: name,
+      thcRaw,
+      calculatedThcRaw,
+    });
     if (!thc) {
       warnings.push("THC value missing; left blank");
     }

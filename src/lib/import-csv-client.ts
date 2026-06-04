@@ -7,6 +7,7 @@
  * upload the entire file just to show a preview.
  */
 
+import { formatImportedThc } from "./potency";
 import { normalizeImportedProductName } from "./seo-generator";
 
 export interface ParsedRowClient {
@@ -142,6 +143,9 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     const priceStr = get("price");
     const qtyStr = get("quantity");
     const thcRaw = get("thc");
+    const calculatedThcIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
+    const calculatedThcRaw =
+      calculatedThcIdx >= 0 ? unwrapCell(cells[calculatedThcIdx] ?? "") : "";
     const cbdRaw = get("cbd");
     const inStockRaw = get("inStock");
 
@@ -168,20 +172,12 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     const finalQty = isNaN(quantity) ? 0 : quantity;
 
     const category = normalizeCategory(rawCategory);
-    let thc = "";
-    if (thcRaw) {
-      thc = thcRaw.replace(/\s+/g, "").trim();
-      if (category === "Edibles" || category === "Capsules") {
-        const mgIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
-        if (mgIdx >= 0) {
-          const mg = parseFloat(unwrapCell(cells[mgIdx] ?? ""));
-          if (!isNaN(mg) && mg > 0) thc = `${Math.round(mg)}mg`;
-          else thc = "";
-        } else if (thcRaw.includes("mg/g")) {
-          thc = "";
-        }
-      }
-    }
+    const thc = formatImportedThc({
+      category,
+      productName: name,
+      thcRaw,
+      calculatedThcRaw,
+    });
     if (!thc) {
       warnings.push("THC value missing; left blank");
     }

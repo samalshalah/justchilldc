@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start -p 3000 -H 0.0.0.0",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs && opennextjs-cloudflare populateCache && wrangler deploy --dry-run --outdir wrangler-dryrun && node scripts/patch-wrangler-bundle.mjs && wrangler deploy wrangler-dryrun/worker.js --no-bundle --x-autoconfig=false",
+    "deploy": "opennextjs-cloudflare build && node scripts/patch-open-next-worker.mjs && opennextjs-cloudflare populateCache local && wrangler deploy --dry-run --outdir wrangler-dryrun && node scripts/patch-wrangler-bundle.mjs && wrangler deploy wrangler-dryrun/worker.js --no-bundle --x-autoconfig=false",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "typecheck": "tsc --noEmit",
