@@ -131,7 +131,9 @@ export function streamObject(
 ): Response {
   const headers: Record<string, string> = {
     "Content-Type": object.httpMetadata?.contentType || "application/octet-stream",
-    "Cache-Control": `${isPublic ? "public" : "private"}, max-age=${cacheTtlSec}`,
+    "Cache-Control": isPublic
+      ? `public, max-age=${cacheTtlSec}, stale-while-revalidate=86400`
+      : `private, max-age=${cacheTtlSec}`,
   };
   if (object.size) headers["Content-Length"] = String(object.size);
   return new Response(object.body, { headers });

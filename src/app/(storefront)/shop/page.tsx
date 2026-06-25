@@ -5,6 +5,7 @@ import { resolveShopConfig } from "@/lib/shop-config";
 import { ShopClient } from "@/components/ShopClient";
 import { DEFAULTS } from "@/lib/defaults";
 import { complianceModelName } from "@/lib/compliance";
+import { openGraphImages } from "@/lib/metadata-images";
 
 export async function generateMetadata({
   searchParams,
@@ -40,7 +41,7 @@ export async function generateMetadata({
     title: { absolute: title },
     description,
     alternates: { canonical: "/shop" },
-    openGraph: { title, description, url: "/shop" },
+    openGraph: { title, description, url: "/shop", images: openGraphImages(settings) },
   };
 }
 

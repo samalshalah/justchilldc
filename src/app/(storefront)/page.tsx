@@ -12,6 +12,7 @@ import { NewsletterForm } from "@/components/NewsletterForm";
 import { DEFAULTS } from "@/lib/defaults";
 import { getAvailableFeelings, getAvailableStrains, getProductFeelings } from "@/lib/product-facets";
 import { categoryPath } from "@/lib/url";
+import { openGraphImages } from "@/lib/metadata-images";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -28,7 +29,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: { absolute: title },
       description,
       alternates: { canonical: "/" },
-      openGraph: { title, description, url: "/" },
+      openGraph: { title, description, url: "/", images: openGraphImages(settings) },
       robots: { index: false, follow: false },
     };
   }
@@ -51,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { absolute: title },
     description,
     alternates: { canonical: "/" },
-    openGraph: { title, description, url: "/" },
+    openGraph: { title, description, url: "/", images: openGraphImages(settings) },
   };
 }
 

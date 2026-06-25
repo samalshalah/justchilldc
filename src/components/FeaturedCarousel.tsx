@@ -59,7 +59,12 @@ export function FeaturedCarousel({ products }: FeaturedCarouselProps) {
             key={product.id}
             className="w-[78vw] max-w-[310px] shrink-0 snap-start sm:w-[44vw] lg:w-[280px] xl:w-[300px]"
           >
-            <ProductCard product={product} index={index} priority={index < 2} />
+            <ProductCard
+              product={product}
+              index={index}
+              priority={index < 2}
+              showDescription={false}
+            />
           </div>
         ))}
       </div>

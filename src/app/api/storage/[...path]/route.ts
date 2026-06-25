@@ -2,7 +2,7 @@
  * /api/storage/[...path] - proxy object storage media to public URLs.
  *
  * Two URL families:
- *   /api/storage/objects/<id>      → private bucket (admin-uploaded images)
+ *   /api/storage/objects/<id>      -> media bucket (admin-uploaded images)
  *   /api/storage/public/<filename> → public search-path lookup
  */
 
@@ -26,7 +26,7 @@ export async function GET(
   try {
     if (path[0] === "objects") {
       const object = await getEntityObject("/" + path.join("/"));
-      return streamObject(object, { isPublic: false });
+      return streamObject(object, { isPublic: true, cacheTtlSec: 604800 });
     }
     if (path[0] === "public") {
       const filename = path.slice(1).join("/");

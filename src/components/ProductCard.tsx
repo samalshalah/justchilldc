@@ -25,6 +25,8 @@ interface ProductCardProps {
   index?: number;
   /** Hint to next/image for above-the-fold images. */
   priority?: boolean;
+  /** Hide summary copy in dense homepage carousels to reduce repeated HTML. */
+  showDescription?: boolean;
 }
 
 function getUpsellDeal(
@@ -95,7 +97,12 @@ function thcBadgeLabel(value: string): string {
   return `THC: ${value}`;
 }
 
-export function ProductCard({ product, index = 0, priority = false }: ProductCardProps) {
+export function ProductCard({
+  product,
+  index = 0,
+  priority = false,
+  showDescription = true,
+}: ProductCardProps) {
   const { addItem, items, totalPrice } = useCart();
   const settings = useSettings();
   const sc = settings.shop_config ?? {};
@@ -255,9 +262,11 @@ export function ProductCard({ product, index = 0, priority = false }: ProductCar
           <h3 className="mb-2 line-clamp-2 text-base font-bold leading-snug text-foreground transition-colors group-hover:text-accent">
             {displayName}
           </h3>
-          <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {cardDescription}
-          </p>
+          {showDescription && (
+            <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {cardDescription}
+            </p>
+          )}
         </div>
       </Link>
 

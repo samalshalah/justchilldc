@@ -3,6 +3,7 @@ import { ExternalLink, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { ContactForm } from "@/components/ContactForm";
 import { DEFAULTS } from "@/lib/defaults";
+import { openGraphImages } from "@/lib/metadata-images";
 
 const JUST_CHILL_GOOGLE_MAPS_URL =
   "https://www.google.com/maps/place/Just+Chill+DC+Licensed+Weed,+Cannabis,+and+THC+Dispensary/data=!4m2!3m1!1s0x0:0x880f94af6b578e6b?sa=X&ved=1t:2428&ictx=111";
@@ -15,11 +16,15 @@ const JUST_CHILL_MAP_EMBED_URL = `https://www.google.com/maps?q=${encodeURICompo
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const storeName = settings.store?.name || DEFAULTS.storeName;
-  const title = `Contact ${storeName}`;
+  const city = settings.location?.city || settings.seo?.city || DEFAULTS.city;
+  const state = settings.location?.state || DEFAULTS.state;
+  const title = `Contact ${storeName} | Cannabis Pickup in ${city}, ${state}`;
+  const description = `Call or visit ${storeName} for cannabis pickup questions, hours, directions, and live menu help in ${city}, ${state}.`;
   return {
     title: { absolute: title },
-    description: `Get in touch with ${storeName}. Questions, orders, partnerships.`,
+    description,
     alternates: { canonical: "/contact" },
+    openGraph: { title, description, url: "/contact", images: openGraphImages(settings) },
   };
 }
 

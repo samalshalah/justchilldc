@@ -145,7 +145,12 @@ export function HomeProductTabsCarousel({
                 key={product.id}
                 className="w-[78vw] max-w-[310px] shrink-0 snap-start sm:w-[44vw] lg:w-[230px] xl:w-[240px] 2xl:w-[286px]"
               >
-                <ProductCard product={product} index={index} priority={index < 2} />
+                <ProductCard
+                  product={product}
+                  index={index}
+                  priority={index < 2}
+                  showDescription={false}
+                />
               </div>
             ))}
           </div>
