@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Clock, ExternalLink, Mail, MapPin, Phone } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
 import { DEFAULTS } from "@/lib/defaults";
 import type { WeekDay } from "@/lib/types";
+
+const JUST_CHILL_GOOGLE_MAPS_URL =
+  "https://www.google.com/maps/place/Just+Chill+DC+Licensed+Weed,+Cannabis,+and+THC+Dispensary/data=!4m2!3m1!1s0x0:0x880f94af6b578e6b?sa=X&ved=1t:2428&ictx=111";
+const JUST_CHILL_MAP_QUERY =
+  "Just Chill DC Licensed Weed, Cannabis, and THC Dispensary";
+const JUST_CHILL_MAP_EMBED_URL = `https://www.google.com/maps?q=${encodeURIComponent(
+  JUST_CHILL_MAP_QUERY
+)}&output=embed`;
 
 const DAY_LABELS: Record<WeekDay, string> = {
   monday: "Monday",
@@ -52,6 +60,8 @@ export default async function LocationPage() {
   const phone = loc.phone || settings.contact?.phone || settings.store?.phone;
   const email = settings.contact?.email;
   const hideAddress = settings.store?.display_hide_address ?? false;
+  const address = loc.address || settings.store?.address;
+  const mapEmbedUrl = loc.mapEmbedUrl || JUST_CHILL_MAP_EMBED_URL;
   const schedule = settings.store_hours?.schedule;
   const showHours = settings.location_page?.show_hours !== false;
   const showMap = settings.location_page?.show_map !== false;
@@ -84,7 +94,7 @@ export default async function LocationPage() {
       <section className="py-14 bg-background">
         <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-10">
           <div className="space-y-6">
-            {!hideAddress && loc.address && (
+            {!hideAddress && address && (
               <div className="bg-card border border-border/50 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <MapPin className="w-5 h-5 text-accent" />
@@ -93,7 +103,7 @@ export default async function LocationPage() {
                   </h2>
                 </div>
                 <p className="text-muted-foreground leading-relaxed">
-                  {loc.address}
+                  {address}
                   {loc.city && (
                     <>
                       <br />
@@ -171,17 +181,37 @@ export default async function LocationPage() {
             )}
           </div>
 
-          {showMap && loc.mapEmbedUrl && (
-            <div className="aspect-square lg:aspect-auto rounded-2xl overflow-hidden border border-border/50">
-              <iframe
-                src={loc.mapEmbedUrl}
-                width="100%"
-                height="100%"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title={`${storeName} location`}
-                className="w-full h-full"
-              />
+          {showMap && (
+            <div className="overflow-hidden rounded-2xl border border-border/50 bg-card">
+              <div className="flex flex-col gap-3 border-b border-border/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="font-display text-xl font-bold text-foreground">
+                    Find Us on Google Maps
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Open directions before visiting for pickup.
+                  </p>
+                </div>
+                <a
+                  href={JUST_CHILL_GOOGLE_MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-bold text-foreground transition-colors hover:border-accent/60 hover:text-accent"
+                >
+                  Directions
+                  <ExternalLink className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </div>
+              <div className="h-[360px] bg-background lg:h-full lg:min-h-[520px]">
+                <iframe
+                  src={mapEmbedUrl}
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`${storeName} Google Map`}
+                  className="h-full w-full border-0"
+                />
+              </div>
             </div>
           )}
         </div>
