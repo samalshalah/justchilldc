@@ -100,6 +100,88 @@ export function normalizeCategory(raw: string): string {
   return titleCase(raw);
 }
 
+function formatRangeNumber(value: number): string {
+  return value
+    .toFixed(1)
+    .replace(/\.0$/, "")
+    .replace(/(\.\d*[1-9])0+$/, "$1");
+}
+
+function combineThcValues(values: string[]): string {
+  const unique = Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean))
+  );
+  if (unique.length <= 1) return unique[0] ?? "";
+
+  const parsed = unique.map((value) => {
+    const match = value.match(/^(\d+(?:\.\d+)?)(%|mg)$/i);
+    return match
+      ? { value: parseFloat(match[1]), unit: match[2].toLowerCase() }
+      : null;
+  });
+  if (parsed.every(Boolean)) {
+    const firstUnit = parsed[0]?.unit;
+    if (firstUnit && parsed.every((item) => item?.unit === firstUnit)) {
+      const numbers = parsed
+        .map((item) => item?.value)
+        .filter((value): value is number => typeof value === "number")
+        .sort((a, b) => a - b);
+      return `${formatRangeNumber(numbers[0])}-${formatRangeNumber(
+        numbers[numbers.length - 1]
+      )}${firstUnit}`;
+    }
+  }
+
+  return unique.join(" / ");
+}
+
+function mergeDuplicateSkuRows(rows: ParsedRowClient[]): ParsedRowClient[] {
+  const bySku = new Map<string, ParsedRowClient>();
+  const thcValuesBySku = new Map<string, Set<string>>();
+
+  for (const row of rows) {
+    const existing = bySku.get(row.sku);
+    if (!existing) {
+      bySku.set(row.sku, { ...row, warnings: [...row.warnings] });
+      thcValuesBySku.set(row.sku, new Set(row.thc ? [row.thc] : []));
+      continue;
+    }
+
+    existing.quantity += row.quantity;
+    existing.inStock = existing.quantity > 0 && (existing.inStock || row.inStock);
+    existing.warnings.push(
+      `Duplicate SKU row ${row.rawIndex} combined; quantity was summed.`
+    );
+
+    const comparableFields: Array<keyof Pick<
+      ParsedRowClient,
+      "name" | "category" | "brand" | "strainName" | "price" | "cbd"
+    >> = ["name", "category", "brand", "strainName", "price", "cbd"];
+
+    for (const field of comparableFields) {
+      if (String(existing[field]) !== String(row[field])) {
+        existing.warnings.push(
+          `Duplicate SKU row ${row.rawIndex} had a different ${field}; kept the first value.`
+        );
+      }
+    }
+
+    if (row.thc) {
+      thcValuesBySku.get(row.sku)?.add(row.thc);
+    }
+  }
+
+  for (const [sku, row] of bySku) {
+    const thcValues = Array.from(thcValuesBySku.get(sku) ?? []);
+    if (thcValues.length > 1) {
+      row.thc = combineThcValues(thcValues);
+      row.warnings.push("Multiple batch THC values were combined into a range.");
+    }
+  }
+
+  return Array.from(bySku.values());
+}
+
 interface ParseResultClient {
   rows: ParsedRowClient[];
   errors: { row: number; message: string }[];
@@ -210,5 +292,5 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     });
   }
 
-  return { rows, errors, detectedColumns: detected };
+  return { rows: mergeDuplicateSkuRows(rows), errors, detectedColumns: detected };
 }
