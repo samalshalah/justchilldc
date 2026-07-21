@@ -14,7 +14,7 @@ import {
   productImageUrl,
 } from "@/lib/images";
 import { isDealActive } from "@/lib/deal-schedule";
-import { isStaleGeneratedSeoCopy, seoTitleCase } from "@/lib/seo-generator";
+import { isStaleGeneratedSeoCopy } from "@/lib/seo-generator";
 import { DEFAULTS } from "@/lib/defaults";
 import { toast } from "sonner";
 import type { Product } from "@/lib/data";
@@ -134,7 +134,7 @@ export function ProductCard({
 
   const imageUrl = productImageUrl(product);
   const logoFallback = isProductLogoFallback(product);
-  const displayName = seoTitleCase(product.name);
+  const displayName = product.name;
   const city = settings.location?.city || settings.seo?.city || DEFAULTS.city;
   const storeName = settings.store?.name || DEFAULTS.storeName;
   const cardDescription = isStaleGeneratedSeoCopy(product.description)

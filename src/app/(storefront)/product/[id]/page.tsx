@@ -211,6 +211,7 @@ export default async function ProductDetailPage({
     },
     seoCtx
   );
+  const displayName = product.name;
   const categoryHref = `/shop?category=${encodeURIComponent(product.category)}`;
   const strainHref = `/shop?strain=${encodeURIComponent(product.strain)}`;
   const brandHref = product.brandId ? `/shop?brand=${product.brandId}` : null;
@@ -256,7 +257,7 @@ export default async function ProductDetailPage({
   const productSchema = {
     "@context": "https://schema.org",
     "@type": "Product",
-    name: seoCopy.displayName,
+    name: displayName,
     description: seoCopy.shortDescription,
     image: siteUrl ? `${siteUrl}${imageUrl}` : imageUrl,
     sku: product.sku || `JC-${product.id}`,
@@ -322,7 +323,7 @@ export default async function ProductDetailPage({
       {
         "@type": "ListItem",
         position: 4,
-        name: seoCopy.displayName,
+        name: displayName,
         item: siteUrl ? `${siteUrl}/product/${product.id}` : `/product/${product.id}`,
       },
     ],
@@ -374,7 +375,7 @@ export default async function ProductDetailPage({
               )}
               <Image
                 src={imageUrl}
-                alt={seoCopy.displayName}
+                alt={displayName}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -409,7 +410,7 @@ export default async function ProductDetailPage({
               </div>
 
               <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-3">
-                {seoCopy.displayName}
+                {displayName}
               </h1>
               <p className="text-muted-foreground text-base mb-5 leading-relaxed">
                 {seoCopy.shortDescription}
@@ -648,7 +649,7 @@ export default async function ProductDetailPage({
               Product FAQs
             </p>
             <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-6">
-              Questions about {seoCopy.displayName}
+              Questions about {displayName}
             </h2>
             <div className="grid gap-4">
               {seoCopy.faqs.map((faq) => (
