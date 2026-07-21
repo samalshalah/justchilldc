@@ -339,6 +339,51 @@ async function bulkSetFeatured(ids: number[], featured: boolean) {
   return { updated: ids.length };
 }
 
+async function bulkAssignBrandByProductName(input: {
+  brandName: string;
+  productNameIncludes: string;
+}) {
+  const { db, productsTable, brandsTable } = await import("@/lib/db");
+  const brandName = input.brandName.trim();
+  const productNameIncludes = input.productNameIncludes.trim();
+  if (!brandName) throw new Error("Brand name is required");
+  if (!productNameIncludes) throw new Error("Product title match is required");
+
+  const [brand] = await db
+    .select({ id: brandsTable.id, name: brandsTable.name })
+    .from(brandsTable)
+    .where(sql`LOWER(${brandsTable.name}) = LOWER(${brandName})`)
+    .orderBy(brandsTable.id)
+    .limit(1);
+
+  if (!brand) {
+    throw new Error(`Brand not found: ${brandName}`);
+  }
+
+  const updatedProducts = await db
+    .update(productsTable)
+    .set({ brandId: brand.id })
+    .where(
+      sql`${productsTable.archivedAt} IS NULL AND ${productsTable.name} ILIKE ${`%${productNameIncludes}%`}`
+    )
+    .returning({
+      id: productsTable.id,
+      sku: productsTable.sku,
+      name: productsTable.name,
+    });
+
+  revalidateAfterProductChange();
+  revalidatePath("/admin/products");
+  revalidatePath("/admin/brands");
+
+  return {
+    brandId: brand.id,
+    brandName: brand.name,
+    updated: updatedProducts.length,
+    products: updatedProducts,
+  };
+}
+
 async function bulkRegenerateDescriptions(ids: number[]) {
   const [
     { db, productsTable, brandsTable },
@@ -746,6 +791,15 @@ export async function POST(req: Request) {
       case "bulkSetFeatured":
         return NextResponse.json(
           await bulkSetFeatured(args[0] as number[], args[1] as boolean)
+        );
+      case "bulkAssignBrandByProductName":
+        return NextResponse.json(
+          await bulkAssignBrandByProductName(
+            args[0] as {
+              brandName: string;
+              productNameIncludes: string;
+            }
+          )
         );
       case "bulkRegenerateDescriptions":
         return NextResponse.json(await bulkRegenerateDescriptions(args[0] as number[]));
