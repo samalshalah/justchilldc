@@ -200,7 +200,6 @@ export function importPreviewProducts(rows: ImportRow[]) {
         price: Math.max(0, Math.round(row.price)),
         salePrice: null,
         imageType: imageTypeFor(category.name),
-        imageUrl: null,
         description: generateSeoDescription(
           {
             name: productName,
@@ -233,6 +232,7 @@ export function importPreviewProducts(rows: ImportRow[]) {
         s.products.push({
           id: s.nextProductId++,
           ...productValues,
+          imageUrl: null,
           createdAt: now(),
         });
         result.inserted++;
