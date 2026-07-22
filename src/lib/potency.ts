@@ -69,24 +69,17 @@ export function formatImportedThc(input: ImportedThcInput): string {
     return pct ? `${formatNumber(pct)}%` : raw.replace(/\s+/g, "");
   }
 
-  if (/\bmg\b/i.test(raw) && category !== "Flower" && category !== "Pre-Rolls" && category !== "Concentrates") {
+  if (/\bmg\b/i.test(raw)) {
     const mg = numeric(raw);
     return mg ? `${formatNumber(mg)}mg` : raw.replace(/\s+/g, "");
   }
 
+  const value = numeric(raw);
+  if (!value) return raw.replace(/\s+/g, "");
+
   if (category === "Edibles" || category === "Capsules") {
-    const namedMg = extractNamedMg(input.productName);
-    const mg = namedMg ?? numeric(input.calculatedThcRaw) ?? numeric(raw);
-    return mg ? `${formatNumber(mg)}mg` : "";
+    return `${formatNumber(value)}mg`;
   }
 
-  const mg = numeric(input.calculatedThcRaw) ?? numeric(raw);
-  const grams = extractGramWeight(input.productName, category);
-  if (mg && grams) {
-    const pct = (mg / (grams * 1000)) * 100;
-    if (pct > 0 && pct <= 100) return `${formatNumber(pct)}%`;
-  }
-
-  if (mg && mg <= 100) return `${formatNumber(mg)}%`;
-  return mg ? `${formatNumber(mg)}mg` : "";
+  return value <= 100 ? `${formatNumber(value)}%` : "";
 }

@@ -15,67 +15,61 @@ const module = { exports: {} };
 Function("module", "exports", js)(module, module.exports);
 const { formatImportedThc } = module.exports;
 
-test("converts calculated THC mg to percent for weighted inhalable products", () => {
+test("ignores calculated THC mg when no explicit THC value is present", () => {
   assert.equal(
     formatImportedThc({
       category: "Concentrates",
       productName: "District cannabis | 1g Dompen | Blue Dream",
-      thcRaw: "755",
       calculatedThcRaw: "755",
     }),
-    "75.5%"
-  );
-
-  assert.equal(
-    formatImportedThc({
-      category: "Concentrates",
-      productName: "ATOMIC POP | .5g DISPOSABLE",
-      thcRaw: "391.3",
-      calculatedThcRaw: "391.3",
-    }),
-    "78.3%"
+    ""
   );
 
   assert.equal(
     formatImportedThc({
       category: "Flower",
       productName: "Alt Sol | 3.5g | Zack's Cake",
-      thcRaw: "764.3",
       calculatedThcRaw: "764.3",
     }),
-    "21.8%"
+    ""
   );
 });
 
-test("infers common pre-roll pack weights before converting to percent", () => {
+test("formats explicit THC percentages and mg values from a THC column", () => {
+  assert.equal(
+    formatImportedThc({
+      category: "Flower",
+      productName: "Alt Sol | 3.5g | Zack's Cake",
+      thcRaw: "21.8%",
+    }),
+    "21.8%"
+  );
+
   assert.equal(
     formatImportedThc({
       category: "Pre-Rolls",
       productName: "ANIMAL COOKIES | 3PK PREROLLS",
-      thcRaw: "457.1",
-      calculatedThcRaw: "457.1",
+      thcRaw: "22",
     }),
-    "21.8%"
+    "22%"
   );
 
   assert.equal(
     formatImportedThc({
-      category: "Pre-Rolls",
-      productName: "BLUE SHARPIEZ | 5PK PREROLL",
-      thcRaw: "342.2",
-      calculatedThcRaw: "342.2",
+      category: "Edibles",
+      productName: "Infused Honey",
+      thcRaw: "200mg",
     }),
-    "13.7%"
+    "200mg"
   );
 });
 
-test("keeps edibles and capsules as mg values", () => {
+test("unitless explicit edible and capsule THC values are treated as mg", () => {
   assert.equal(
     formatImportedThc({
       category: "Capsules",
       productName: "District Cannabis | Capsules 10mg THC 10ct.",
-      thcRaw: "1",
-      calculatedThcRaw: "1",
+      thcRaw: "10",
     }),
     "10mg"
   );

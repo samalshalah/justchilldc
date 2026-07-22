@@ -8,10 +8,8 @@
  * Quirks of the Dutchie format we handle:
  *   - Every cell is wrapped as `="value"` (Excel-quoted, preserves leading
  *     zeros on SKUs). We strip the leading `=` before unquoting.
- *   - Some exports only include "Calculated THC (mg)". For flower,
- *     pre-rolls, and concentrates we convert that package total to a
- *     display percentage when package weight is present. Edibles/capsules
- *     stay in mg.
+ *   - "Calculated THC (mg)" is not used as display THC. The import only
+ *     displays THC when the file includes an explicit THC column.
  *   - "Strain" holds the strain *name*, not Indica/Sativa/Hybrid. We
  *     default everything to Hybrid and let the admin fix in bulk.
  */
@@ -48,7 +46,16 @@ const HEADER_ALIASES: Record<
   strainName: ["strain"],
   price: ["current price", "price", "price (catalog)", "unit price (inventory)"],
   quantity: ["available", "quantity", "qty"],
-  thc: ["thc", "calculated thc (mg)"],
+  thc: [
+    "thc",
+    "thc %",
+    "thc (%)",
+    "thc percent",
+    "total thc",
+    "total thc %",
+    "total thc (%)",
+    "total thc percent",
+  ],
   cbd: ["cbd"],
   inStock: ["is available online", "is pos available"],
 };
@@ -192,9 +199,6 @@ export function parseInventoryCsv(text: string): ParseResult {
     const priceStr = get("price");
     const qtyStr = get("quantity");
     const thcRaw = get("thc");
-    const calculatedThcIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
-    const calculatedThcRaw =
-      calculatedThcIdx >= 0 ? unwrapCell(cells[calculatedThcIdx] ?? "") : "";
     const cbdRaw = get("cbd");
     const inStockRaw = get("inStock");
 
@@ -225,7 +229,6 @@ export function parseInventoryCsv(text: string): ParseResult {
       category,
       productName: name,
       thcRaw,
-      calculatedThcRaw,
     });
     if (!thc) {
       warnings.push("THC value missing; left blank");

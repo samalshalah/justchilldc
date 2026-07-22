@@ -34,7 +34,7 @@ function loadTs(path) {
 
 const { parseInventoryCsv } = loadTs("src/lib/import-csv-client.ts");
 
-test("duplicate SKU import keeps one THC value instead of publishing a range", () => {
+test("calculated THC mg is not imported as display THC", () => {
   const csv = [
     '"SKU","Product","Category","Strain","Vendor","Available","Current price","Calculated THC (mg)"',
     '="15617291",="DC | GELATO CAKE | 3.5G",="Flower",="Gelato Cake",="District Cannabis",="1",="45",="737.2"',
@@ -46,10 +46,26 @@ test("duplicate SKU import keeps one THC value instead of publishing a range", (
   assert.equal(errors.length, 0);
   assert.equal(rows.length, 1);
   assert.equal(rows[0].quantity, 13);
+  assert.equal(rows[0].thc, "");
+  assert.equal(rows[0].weight, "3.5g");
+  assert.match(rows[0].warnings.join(" "), /THC value missing/);
+});
+
+test("explicit THC column is imported and duplicate SKU keeps the first value", () => {
+  const csv = [
+    '"SKU","Product","Category","Strain","Vendor","Available","Current price","THC"',
+    '="15617291",="DC | GELATO CAKE | 3.5G",="Flower",="Gelato Cake",="District Cannabis",="1",="45",="21.1%"',
+    '="15617291",="DC | GELATO CAKE | 3.5G",="Flower",="Gelato Cake",="District Cannabis",="12",="45",="20%"',
+  ].join("\n");
+
+  const { rows, errors } = parseInventoryCsv(csv);
+
+  assert.equal(errors.length, 0);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].quantity, 13);
   assert.equal(rows[0].thc, "21.1%");
   assert.equal(rows[0].weight, "3.5g");
   assert.match(rows[0].warnings.join(" "), /different thc/);
-  assert.doesNotMatch(rows[0].thc, /-/);
 });
 
 test("edible import extracts dose size from the product title", () => {
@@ -62,7 +78,7 @@ test("edible import extracts dose size from the product title", () => {
 
   assert.equal(errors.length, 0);
   assert.equal(rows.length, 1);
-  assert.equal(rows[0].thc, "10mg");
+  assert.equal(rows[0].thc, "");
   assert.equal(rows[0].weight, "10mg THC");
 });
 

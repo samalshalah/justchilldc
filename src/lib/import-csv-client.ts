@@ -38,7 +38,16 @@ const HEADER_ALIASES: Record<
   strainName: ["strain"],
   price: ["current price", "price", "price (catalog)", "unit price (inventory)"],
   quantity: ["available", "quantity", "qty"],
-  thc: ["thc", "calculated thc (mg)"],
+  thc: [
+    "thc",
+    "thc %",
+    "thc (%)",
+    "thc percent",
+    "total thc",
+    "total thc %",
+    "total thc (%)",
+    "total thc percent",
+  ],
   cbd: ["cbd"],
   inStock: ["is available online", "is pos available"],
 };
@@ -186,9 +195,6 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     const priceStr = get("price");
     const qtyStr = get("quantity");
     const thcRaw = get("thc");
-    const calculatedThcIdx = findHeaderIndex(headers, ["calculated thc (mg)"]);
-    const calculatedThcRaw =
-      calculatedThcIdx >= 0 ? unwrapCell(cells[calculatedThcIdx] ?? "") : "";
     const cbdRaw = get("cbd");
     const inStockRaw = get("inStock");
 
@@ -219,7 +225,6 @@ export function parseInventoryCsv(text: string): ParseResultClient {
       category,
       productName: name,
       thcRaw,
-      calculatedThcRaw,
     });
     if (!thc) {
       warnings.push("THC value missing; left blank");

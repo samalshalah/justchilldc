@@ -35,6 +35,11 @@ function parseJsonArr(s: string | undefined | null): string[] {
   }
 }
 
+function hasDetailValue(value: string | undefined | null): value is string {
+  const v = value?.trim();
+  return Boolean(v) && v !== "-" && v !== "\u2014" && v !== "â€”";
+}
+
 type ProductSeoTemplateContext = {
   product: string;
   store: string;
@@ -97,13 +102,15 @@ export async function generateMetadata({
     state,
     legalModelName: DEFAULTS.legalModelName,
   };
+  const productThc = hasDetailValue(product.thc) ? product.thc : "";
+  const productCbd = hasDetailValue(product.cbd) ? product.cbd : "";
   const productSeoTitle = generateSeoTitle(
     {
       name: product.name,
       category: product.category,
       strainType: product.strain as StrainType,
-      thc: product.thc,
-      cbd: product.cbd,
+      thc: productThc,
+      cbd: productCbd,
       brand: brand?.name,
     },
     seoCtx
@@ -116,8 +123,8 @@ export async function generateMetadata({
     state,
     category: product.category,
     strain: product.strain,
-    thc: product.thc ?? "",
-    cbd: product.cbd ?? "",
+    thc: productThc,
+    cbd: productCbd,
   };
 
   const titleOverride = seo.page_product?.title?.trim();
@@ -133,8 +140,8 @@ export async function generateMetadata({
         name: product.name,
         category: product.category,
         strainType: product.strain as StrainType,
-        thc: product.thc,
-        cbd: product.cbd,
+        thc: productThc,
+        cbd: productCbd,
         brand: brand?.name,
       },
       seoCtx
@@ -194,13 +201,15 @@ export default async function ProductDetailPage({
   const feelings = getProductFeelings(product);
   const imageUrl = productImageUrl(product);
   const logoFallback = isProductLogoFallback(product);
+  const productThc = hasDetailValue(product.thc) ? product.thc : "";
+  const productCbd = hasDetailValue(product.cbd) ? product.cbd : "";
   const seoCopy = generateProductPageSeoCopy(
     {
       name: product.name,
       category: product.category,
       strainType: product.strain as StrainType,
-      thc: product.thc,
-      cbd: product.cbd,
+      thc: productThc,
+      cbd: productCbd,
       brand: brandName,
       description: product.description,
       effects,
@@ -275,8 +284,8 @@ export default async function ProductDetailPage({
     },
     additionalProperty: [
       { "@type": "PropertyValue", name: "Strain", value: product.strain },
-      { "@type": "PropertyValue", name: "THC", value: product.thc },
-      ...(product.cbd ? [{ "@type": "PropertyValue", name: "CBD", value: product.cbd }] : []),
+      ...(productThc ? [{ "@type": "PropertyValue", name: "THC", value: productThc }] : []),
+      ...(productCbd ? [{ "@type": "PropertyValue", name: "CBD", value: productCbd }] : []),
       ...(product.weight
         ? [{ "@type": "PropertyValue", name: "Weight", value: product.weight }]
         : []),
@@ -438,15 +447,17 @@ export default async function ProductDetailPage({
 
               {showSpecs && (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
-                  <div className="bg-card border border-border rounded-xl p-4">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-                      THC
-                    </p>
-                    <p className="text-xl font-bold text-foreground flex items-center gap-2">
-                      <Leaf className="w-4 h-4 text-accent" />
-                      {product.thc}
-                    </p>
-                  </div>
+                  {productThc && (
+                    <div className="bg-card border border-border rounded-xl p-4">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        THC
+                      </p>
+                      <p className="text-xl font-bold text-foreground flex items-center gap-2">
+                        <Leaf className="w-4 h-4 text-accent" />
+                        {productThc}
+                      </p>
+                    </div>
+                  )}
                   <div className="bg-card border border-border rounded-xl p-4">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                       CBD

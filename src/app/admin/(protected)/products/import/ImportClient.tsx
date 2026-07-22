@@ -220,7 +220,8 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
             <code>Product</code>, <code>Category</code>, <code>Brand</code> /{" "}
             <code>Vendor</code>, <code>Strain</code>, <code>Current Price</code>,{" "}
             <code>Available</code>, <code>THC</code>, <code>CBD</code>. Other
-            columns are ignored.
+            columns are ignored. <code>Calculated THC (mg)</code> is not shown as
+            THC unless the file also includes an explicit THC column.
           </p>
         </div>
       </div>
