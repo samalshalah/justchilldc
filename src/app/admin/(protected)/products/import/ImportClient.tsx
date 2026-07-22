@@ -160,6 +160,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
       quantity: r.quantity,
       thc: r.thc,
       cbd: r.cbd,
+      weight: r.weight,
       inStock: r.inStock,
       strainType: r.strainType,
       description: r.description,
@@ -310,6 +311,12 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
                     Category
                   </th>
                   <th className="text-left px-3 py-2 text-xs uppercase text-zinc-400">
+                    THC
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs uppercase text-zinc-400">
+                    Size
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs uppercase text-zinc-400">
                     Strain
                   </th>
                   <th className="text-left px-3 py-2 text-xs uppercase text-zinc-400">
@@ -357,6 +364,12 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
                       )}
                     </td>
                     <td className="px-3 py-2 text-zinc-400">{r.category}</td>
+                    <td className="px-3 py-2 text-zinc-400 font-mono">
+                      {r.thc || "-"}
+                    </td>
+                    <td className="px-3 py-2 text-zinc-400 font-mono">
+                      {r.weight || "-"}
+                    </td>
                     <td className="px-3 py-2 text-zinc-400 max-w-[150px] truncate">
                       {r.strainName ? titleCase(r.strainName) : "—"}
                     </td>

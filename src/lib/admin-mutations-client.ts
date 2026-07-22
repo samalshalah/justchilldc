@@ -48,6 +48,7 @@ export interface ImportRowInput {
   quantity: number;
   thc: string;
   cbd: string;
+  weight?: string;
   inStock: boolean;
   strainType: StrainType;
   skip?: boolean;

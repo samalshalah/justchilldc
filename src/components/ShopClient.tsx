@@ -12,6 +12,7 @@ import {
   getProductFeelings,
   type StrainFilter,
 } from "@/lib/product-facets";
+import { comparePackageSizes } from "@/lib/product-size";
 
 type SortId = "featured" | "price_asc" | "price_desc" | "name_asc" | "name_desc";
 
@@ -31,6 +32,7 @@ interface ShopClientProps {
   initialStrain?: string;
   initialEffect?: string;
   initialBrand?: string;
+  initialSize?: string;
   initialSearch?: string;
   initialSort?: string;
   initialPage?: number;
@@ -58,6 +60,7 @@ export function ShopClient({
   initialStrain,
   initialEffect,
   initialBrand,
+  initialSize,
   initialSearch,
   initialSort,
   initialPage,
@@ -76,6 +79,7 @@ export function ShopClient({
   const [brand, setBrand] = useState<number | "All">(
     initialBrand ? Number(initialBrand) : "All"
   );
+  const [size, setSize] = useState<string>(initialSize ?? "All");
   const [sortBy, setSortBy] = useState<SortId>(
     (initialSort as SortId) ?? config.defaultSort
   );
@@ -99,6 +103,17 @@ export function ShopClient({
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const availableFeelings = useMemo(() => getAvailableFeelings(products), [products]);
+  const availableSizes = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          products
+            .map((product) => product.weight?.trim())
+            .filter((value): value is string => Boolean(value))
+        )
+      ).sort(comparePackageSizes),
+    [products]
+  );
   const queryKey = searchParams.toString();
 
   useEffect(() => {
@@ -107,6 +122,7 @@ export function ShopClient({
     const nextCategory = searchParams.get("category") ?? initialCategory ?? "All";
     const nextStrain = (searchParams.get("strain") ?? "All") as StrainFilter;
     const nextEffect = searchParams.get("effect") ?? "All";
+    const nextSize = searchParams.get("size") ?? initialSize ?? "All";
     const brandParam = searchParams.get("brand");
     const parsedBrand = brandParam ? Number(brandParam) : NaN;
     const nextBrand: number | "All" = Number.isFinite(parsedBrand)
@@ -126,6 +142,7 @@ export function ShopClient({
     setCategory(nextCategory);
     setStrain(nextStrain);
     setEffect(nextEffect);
+    setSize(nextSize);
     setBrand(nextBrand);
     setSearch(nextSearch);
     setSortBy(nextSort);
@@ -135,6 +152,7 @@ export function ShopClient({
   }, [
     queryKey,
     initialCategory,
+    initialSize,
     config.defaultSort,
     priceMin,
     priceMax,
@@ -153,6 +171,7 @@ export function ShopClient({
       result = result.filter((p) => getProductFeelings(p).includes(effect));
     }
     if (brand !== "All") result = result.filter((p) => p.brandId === brand);
+    if (size !== "All") result = result.filter((p) => p.weight === size);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter(
@@ -195,6 +214,7 @@ export function ShopClient({
     strain,
     effect,
     brand,
+    size,
     search,
     sortBy,
     showInStockOnly,
@@ -206,7 +226,7 @@ export function ShopClient({
 
   useEffect(() => {
     setPage(1);
-  }, [category, strain, effect, brand, search, sortBy, minPrice, maxPrice, showInStockOnly]);
+  }, [category, strain, effect, brand, size, search, sortBy, minPrice, maxPrice, showInStockOnly]);
 
   const pageSize = config.pageSize;
   const usePagination = pageSize > 0;
@@ -221,6 +241,7 @@ export function ShopClient({
     if (strain !== "All") params.set("strain", strain);
     if (effect !== "All") params.set("effect", effect);
     if (brand !== "All") params.set("brand", String(brand));
+    if (size !== "All") params.set("size", size);
     if (search.trim()) params.set("q", search.trim());
     if (sortBy !== config.defaultSort) params.set("sort", sortBy);
     if (page > 1) params.set("page", String(page));
@@ -231,7 +252,7 @@ export function ShopClient({
     const qs = params.toString();
     const url = qs ? `/shop?${qs}` : "/shop";
     window.history.replaceState({}, "", url);
-  }, [category, strain, effect, brand, search, sortBy, page, minPrice, maxPrice, priceMin, priceMax, config.defaultSort, config.sidebar.showPrice]);
+  }, [category, strain, effect, brand, size, search, sortBy, page, minPrice, maxPrice, priceMin, priceMax, config.defaultSort, config.sidebar.showPrice]);
 
   useEffect(() => {
     if (applyingUrlStateRef.current) {
@@ -247,6 +268,7 @@ export function ShopClient({
     strain !== "All" ||
     effect !== "All" ||
     brand !== "All" ||
+    size !== "All" ||
     search.trim() !== "" ||
     showInStockOnly ||
     (config.sidebar.showPrice && (minPrice > priceMin || maxPrice < priceMax));
@@ -256,6 +278,7 @@ export function ShopClient({
     setStrain("All");
     setEffect("All");
     setBrand("All");
+    setSize("All");
     setSearch("");
     setShowInStockOnly(false);
     setMinPrice(priceMin);
@@ -346,6 +369,28 @@ export function ShopClient({
               current={String(brand)}
               onChange={(v) => setBrand(Number(v))}
               label={b.name}
+            />
+          ))}
+        </FilterGroup>
+      )}
+
+      {availableSizes.length > 0 && (
+        <FilterGroup title="Size">
+          <FilterRadio
+            name="size"
+            value="All"
+            current={size}
+            onChange={setSize}
+            label="All sizes"
+          />
+          {availableSizes.map((option) => (
+            <FilterRadio
+              key={option}
+              name="size"
+              value={option}
+              current={size}
+              onChange={setSize}
+              label={option}
             />
           ))}
         </FilterGroup>
@@ -496,6 +541,20 @@ export function ShopClient({
                       {availableFeelings.map((feeling) => (
                         <option key={feeling} value={feeling}>
                           {feeling}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  {availableSizes.length > 0 && (
+                    <select
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                      className="appearance-none bg-card border border-border rounded-full py-2 px-4 text-sm text-foreground focus:outline-none focus:border-accent"
+                    >
+                      <option value="All">All Sizes</option>
+                      {availableSizes.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
                         </option>
                       ))}
                     </select>

@@ -10,7 +10,13 @@ import { openGraphImages } from "@/lib/metadata-images";
 export async function generateMetadata({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; strain?: string; brand?: string; effect?: string }>;
+  searchParams: Promise<{
+    category?: string;
+    strain?: string;
+    brand?: string;
+    effect?: string;
+    size?: string;
+  }>;
 }): Promise<Metadata> {
   const sp = await searchParams;
   const [settings, brands] = await Promise.all([getSiteSettings(), getBrands()]);
@@ -25,6 +31,7 @@ export async function generateMetadata({
   if (sp.category) pageLabel = `${sp.category}`;
   if (sp.strain) pageLabel = `${sp.strain} ${pageLabel}`;
   if (sp.effect) pageLabel = `${sp.effect} ${pageLabel}`;
+  if (sp.size) pageLabel = `${sp.size} ${pageLabel}`;
   if (brandName) pageLabel = `${brandName} ${pageLabel}`;
 
   const titleRaw = seo.page_shop?.title || seo.title_template || DEFAULTS.seoTitleTemplate;
@@ -53,6 +60,7 @@ export default async function ShopPage({
     strain?: string;
     effect?: string;
     brand?: string;
+    size?: string;
     q?: string;
     sort?: string;
     page?: string;
@@ -92,6 +100,7 @@ export default async function ShopPage({
         initialStrain={sp.strain}
         initialEffect={sp.effect}
         initialBrand={sp.brand}
+        initialSize={sp.size}
         initialSearch={sp.q}
         initialSort={sp.sort}
         initialPage={sp.page ? parseInt(sp.page, 10) : 1}

@@ -17,6 +17,7 @@ interface Props {
     strain?: string;
     effect?: string;
     brand?: string;
+    size?: string;
     q?: string;
     sort?: string;
     page?: string;
@@ -110,6 +111,7 @@ export default async function CategoryShopPage({ params, searchParams }: Props) 
         initialStrain={sp.strain}
         initialEffect={sp.effect}
         initialBrand={sp.brand}
+        initialSize={sp.size}
         initialSearch={sp.q}
         initialSort={sp.sort}
         initialPage={sp.page ? parseInt(sp.page, 10) : 1}

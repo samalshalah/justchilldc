@@ -18,6 +18,7 @@ import { eq, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
 import { titleCase } from "@/lib/import-csv";
+import { formatImportedPackageSize } from "@/lib/product-size";
 import {
   generateBrandSeoDescription,
   generateCategorySeoDescription,
@@ -61,6 +62,7 @@ export interface ImportRowInput {
   quantity: number;
   thc: string;
   cbd: string;
+  weight?: string;
   inStock: boolean;
   /** "Indica" | "Sativa" | "Hybrid" | "CBD" — defaulted to Hybrid in client */
   strainType: "Indica" | "Sativa" | "Hybrid" | "CBD";
@@ -240,7 +242,13 @@ export async function runImport(rows: ImportRowInput[]): Promise<ImportResult> {
         price: Math.max(0, Math.round(row.price)),
         imageType: imageTypeFor(row.category),
         description,
-        weight: "",
+        weight:
+          row.weight?.trim() ||
+          formatImportedPackageSize({
+            category: row.category,
+            productName,
+            thc: row.thc,
+          }),
         sku: row.sku,
         quantity: row.quantity,
         inStock: row.inStock && row.quantity > 0,

@@ -8,6 +8,7 @@
  */
 
 import { formatImportedThc } from "./potency";
+import { formatImportedPackageSize } from "./product-size";
 import { normalizeImportedProductName } from "./seo-generator";
 
 export interface ParsedRowClient {
@@ -20,12 +21,16 @@ export interface ParsedRowClient {
   quantity: number;
   thc: string;
   cbd: string;
+  weight: string;
   inStock: boolean;
   rawIndex: number;
   warnings: string[];
 }
 
-const HEADER_ALIASES: Record<keyof Omit<ParsedRowClient, "rawIndex" | "warnings">, string[]> = {
+const HEADER_ALIASES: Record<
+  keyof Omit<ParsedRowClient, "rawIndex" | "warnings" | "weight">,
+  string[]
+> = {
   sku: ["sku", "id", "product id"],
   name: ["product", "name", "product name", "online title"],
   category: ["category", "master category"],
@@ -100,50 +105,13 @@ export function normalizeCategory(raw: string): string {
   return titleCase(raw);
 }
 
-function formatRangeNumber(value: number): string {
-  return value
-    .toFixed(1)
-    .replace(/\.0$/, "")
-    .replace(/(\.\d*[1-9])0+$/, "$1");
-}
-
-function combineThcValues(values: string[]): string {
-  const unique = Array.from(
-    new Set(values.map((value) => value.trim()).filter(Boolean))
-  );
-  if (unique.length <= 1) return unique[0] ?? "";
-
-  const parsed = unique.map((value) => {
-    const match = value.match(/^(\d+(?:\.\d+)?)(%|mg)$/i);
-    return match
-      ? { value: parseFloat(match[1]), unit: match[2].toLowerCase() }
-      : null;
-  });
-  if (parsed.every(Boolean)) {
-    const firstUnit = parsed[0]?.unit;
-    if (firstUnit && parsed.every((item) => item?.unit === firstUnit)) {
-      const numbers = parsed
-        .map((item) => item?.value)
-        .filter((value): value is number => typeof value === "number")
-        .sort((a, b) => a - b);
-      return `${formatRangeNumber(numbers[0])}-${formatRangeNumber(
-        numbers[numbers.length - 1]
-      )}${firstUnit}`;
-    }
-  }
-
-  return unique.join(" / ");
-}
-
 function mergeDuplicateSkuRows(rows: ParsedRowClient[]): ParsedRowClient[] {
   const bySku = new Map<string, ParsedRowClient>();
-  const thcValuesBySku = new Map<string, Set<string>>();
 
   for (const row of rows) {
     const existing = bySku.get(row.sku);
     if (!existing) {
       bySku.set(row.sku, { ...row, warnings: [...row.warnings] });
-      thcValuesBySku.set(row.sku, new Set(row.thc ? [row.thc] : []));
       continue;
     }
 
@@ -155,8 +123,8 @@ function mergeDuplicateSkuRows(rows: ParsedRowClient[]): ParsedRowClient[] {
 
     const comparableFields: Array<keyof Pick<
       ParsedRowClient,
-      "name" | "category" | "brand" | "strainName" | "price" | "cbd"
-    >> = ["name", "category", "brand", "strainName", "price", "cbd"];
+      "name" | "category" | "brand" | "strainName" | "price" | "thc" | "cbd" | "weight"
+    >> = ["name", "category", "brand", "strainName", "price", "thc", "cbd", "weight"];
 
     for (const field of comparableFields) {
       if (String(existing[field]) !== String(row[field])) {
@@ -164,18 +132,6 @@ function mergeDuplicateSkuRows(rows: ParsedRowClient[]): ParsedRowClient[] {
           `Duplicate SKU row ${row.rawIndex} had a different ${field}; kept the first value.`
         );
       }
-    }
-
-    if (row.thc) {
-      thcValuesBySku.get(row.sku)?.add(row.thc);
-    }
-  }
-
-  for (const [sku, row] of bySku) {
-    const thcValues = Array.from(thcValuesBySku.get(sku) ?? []);
-    if (thcValues.length > 1) {
-      row.thc = combineThcValues(thcValues);
-      row.warnings.push("Multiple batch THC values were combined into a range.");
     }
   }
 
@@ -263,6 +219,11 @@ export function parseInventoryCsv(text: string): ParseResultClient {
     if (!thc) {
       warnings.push("THC value missing; left blank");
     }
+    const weight = formatImportedPackageSize({
+      category,
+      productName: name,
+      thc,
+    });
 
     let cbd = "0%";
     if (cbdRaw) {
@@ -286,6 +247,7 @@ export function parseInventoryCsv(text: string): ParseResultClient {
       quantity: finalQty,
       thc,
       cbd,
+      weight,
       inStock,
       rawIndex: i + 1,
       warnings,

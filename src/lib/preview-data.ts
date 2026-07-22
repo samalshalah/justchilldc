@@ -9,6 +9,7 @@ import {
   seoTitleCase,
 } from "./seo-generator";
 import { DEFAULTS } from "./defaults";
+import { formatImportedPackageSize } from "./product-size";
 
 type ImportRow = {
   sku: string;
@@ -20,6 +21,7 @@ type ImportRow = {
   quantity: number;
   thc: string;
   cbd: string;
+  weight?: string;
   inStock: boolean;
   strainType: "Indica" | "Sativa" | "Hybrid" | "CBD";
   skip?: boolean;
@@ -190,6 +192,13 @@ export function importPreviewProducts(rows: ImportRow[]) {
       if (s.categories.length > beforeCategories) result.categoriesCreated.push(category.name);
 
       const productName = normalizeImportedProductName(row.name);
+      const weight =
+        row.weight?.trim() ||
+        formatImportedPackageSize({
+          category: category.name,
+          productName,
+          thc: row.thc,
+        });
       const productValues = {
         name: productName,
         category: category.name,
@@ -215,7 +224,7 @@ export function importPreviewProducts(rows: ImportRow[]) {
         effects: "[]",
         terpenes: "[]",
         flavors: "[]",
-        weight: "",
+        weight,
         featured: false,
         inStock: row.inStock && row.quantity > 0,
         sku: row.sku,

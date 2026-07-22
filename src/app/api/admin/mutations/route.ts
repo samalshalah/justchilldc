@@ -6,6 +6,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { blogExcerpt, slugifyBlogSlug } from "@/lib/blog";
 import { DEFAULTS } from "@/lib/defaults";
 import { titleCase } from "@/lib/import-csv";
+import { formatImportedPackageSize } from "@/lib/product-size";
 import { isLocalPreviewMode } from "@/lib/preview";
 import {
   generateBrandSeoDescription,
@@ -68,6 +69,7 @@ interface ImportRowInput {
   quantity: number;
   thc: string;
   cbd: string;
+  weight?: string;
   inStock: boolean;
   strainType: "Indica" | "Sativa" | "Hybrid" | "CBD";
   skip?: boolean;
@@ -671,7 +673,13 @@ async function runImport(rows: ImportRowInput[]) {
         price: Math.max(0, Math.round(row.price)),
         imageType: imageTypeFor(row.category),
         description,
-        weight: "",
+        weight:
+          row.weight?.trim() ||
+          formatImportedPackageSize({
+            category: row.category,
+            productName,
+            thc: row.thc,
+          }),
         sku: row.sku,
         quantity: row.quantity,
         inStock: row.inStock && row.quantity > 0,

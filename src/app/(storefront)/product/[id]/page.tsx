@@ -437,7 +437,7 @@ export default async function ProductDetailPage({
               </div>
 
               {showSpecs && (
-                <div className="grid grid-cols-2 gap-3 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                   <div className="bg-card border border-border rounded-xl p-4">
                     <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                       THC
@@ -456,6 +456,17 @@ export default async function ProductDetailPage({
                       {product.cbd}
                     </p>
                   </div>
+                  {product.weight && (
+                    <div className="bg-card border border-border rounded-xl p-4">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                        Size
+                      </p>
+                      <p className="text-xl font-bold text-foreground flex items-center gap-2">
+                        <Info className="w-4 h-4 text-accent" />
+                        {product.weight}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
