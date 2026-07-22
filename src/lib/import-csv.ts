@@ -115,6 +115,11 @@ export function normalizeCategory(raw: string): string {
   return titleCase(raw);
 }
 
+function normalizeBrand(raw: string, productName: string): string {
+  if (/\balt\s*sol\b|altsol/i.test(productName)) return "AltSol";
+  return raw;
+}
+
 function mergeDuplicateSkuRows(rows: ParsedRow[]): ParsedRow[] {
   const bySku = new Map<string, ParsedRow>();
 
@@ -182,7 +187,7 @@ export function parseInventoryCsv(text: string): ParseResult {
     const sku = get("sku");
     const name = normalizeImportedProductName(get("name"));
     const rawCategory = get("category");
-    const rawBrand = get("brand");
+    const rawBrand = normalizeBrand(get("brand"), name);
     const strainName = get("strainName");
     const priceStr = get("price");
     const qtyStr = get("quantity");

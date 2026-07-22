@@ -65,3 +65,17 @@ test("edible import extracts dose size from the product title", () => {
   assert.equal(rows[0].thc, "10mg");
   assert.equal(rows[0].weight, "10mg THC");
 });
+
+test("AltSol products keep the AltSol brand even when Dutchie vendor is generic", () => {
+  const csv = [
+    '"SKU","Product","Category","Strain","Vendor","Available","Current price","Calculated THC (mg)"',
+    '="58086782",="JACK HERER | 3.5g JAR | ALTSOL",="Flower",="Jack Herer",="Dc’s finest cc",="3",="55",="604.1"',
+  ].join("\n");
+
+  const { rows, errors } = parseInventoryCsv(csv);
+
+  assert.equal(errors.length, 0);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].brand, "AltSol");
+  assert.equal(rows[0].weight, "3.5g");
+});
