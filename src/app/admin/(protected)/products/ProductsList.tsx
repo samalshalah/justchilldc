@@ -13,6 +13,8 @@ import {
   Loader2,
   Search,
   Star,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import {
   isProductLogoFallback,
@@ -54,6 +56,10 @@ export function ProductsList({ products }: Props) {
   const [savingFeatured, setSavingFeatured] = useState<Set<number>>(
     () => new Set()
   );
+  const [stockOverrides, setStockOverrides] = useState<Map<number, boolean>>(
+    () => new Map()
+  );
+  const [savingStock, setSavingStock] = useState<Set<number>>(() => new Set());
 
   const filtered = useMemo(() => {
     const visibleProducts = products.filter((p) => !removedIds.has(p.id));
@@ -181,6 +187,40 @@ export function ProductsList({ products }: Props) {
       });
   };
 
+  const toggleSingleStock = (id: number, currentlyInStock: boolean) => {
+    const next = !currentlyInStock;
+    setStockOverrides((m) => {
+      const out = new Map(m);
+      out.set(id, next);
+      return out;
+    });
+    setSavingStock((s) => {
+      const out = new Set(s);
+      out.add(id);
+      return out;
+    });
+    bulkSetInStock([id], next)
+      .then(() => {
+        flash(next ? "Product enabled" : "Product disabled");
+        router.refresh();
+      })
+      .catch((err) => {
+        setStockOverrides((m) => {
+          const out = new Map(m);
+          out.set(id, currentlyInStock);
+          return out;
+        });
+        flash(err instanceof Error ? err.message : "Stock update failed");
+      })
+      .finally(() => {
+        setSavingStock((s) => {
+          const out = new Set(s);
+          out.delete(id);
+          return out;
+        });
+      });
+  };
+
   const runRegenerate = () => {
     if (noneSelected) return;
     const ids = Array.from(selected);
@@ -269,7 +309,7 @@ export function ProductsList({ products }: Props) {
             disabled={pending}
             className="px-3 py-1.5 text-sm border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-50"
           >
-            Mark in stock
+            Enable selected
           </button>
           <button
             type="button"
@@ -277,7 +317,7 @@ export function ProductsList({ products }: Props) {
             disabled={pending}
             className="px-3 py-1.5 text-sm border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-50"
           >
-            Mark out of stock
+            Disable selected
           </button>
           <button
             type="button"
@@ -335,6 +375,10 @@ export function ProductsList({ products }: Props) {
               ? featuredOverrides.get(p.id)!
               : p.featured;
             const featuredSaving = savingFeatured.has(p.id);
+            const inStock = stockOverrides.has(p.id)
+              ? stockOverrides.get(p.id)!
+              : p.inStock;
+            const stockSaving = savingStock.has(p.id);
             return (
               <div
                 key={p.id}
@@ -399,35 +443,55 @@ export function ProductsList({ products }: Props) {
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-zinc-800 pt-3 sm:mt-0 sm:ml-auto sm:shrink-0 sm:justify-end sm:border-0 sm:pt-0">
                   <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  {!p.inStock && (
-                    <span className="px-2 py-0.5 text-xs rounded bg-red-900/30 text-red-300 border border-red-800">
-                      OOS
-                    </span>
-                  )}
-                  {p.salePrice && (
-                    <span className="px-2 py-0.5 text-xs rounded bg-emerald-900/30 text-emerald-300 border border-emerald-800">
-                      Sale
-                    </span>
-                  )}
+                    {!inStock && (
+                      <span className="px-2 py-0.5 text-xs rounded bg-red-900/30 text-red-300 border border-red-800">
+                        Disabled
+                      </span>
+                    )}
+                    {p.salePrice && (
+                      <span className="px-2 py-0.5 text-xs rounded bg-emerald-900/30 text-emerald-300 border border-emerald-800">
+                        Sale
+                      </span>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
-                  <Link
-                    href={`/admin/products/${p.id}`}
-                    className="inline-flex min-h-10 items-center px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
-                  >
-                    Edit
-                  </Link>
-                  <SingleDeleteButton
-                    id={p.id}
-                    name={p.name}
-                    onDeleted={() => {
-                      markRemoved([p.id]);
-                      clearSelection();
-                      flash("Product deleted");
-                      router.refresh();
-                    }}
-                    onError={(message) => flash(message)}
-                  />
+                    <button
+                      type="button"
+                      onClick={() => toggleSingleStock(p.id, inStock)}
+                      disabled={stockSaving}
+                      className={`inline-flex min-h-10 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors disabled:opacity-50 ${
+                        inStock
+                          ? "border border-red-900 bg-red-950/40 text-red-300 hover:bg-red-950/60"
+                          : "border border-emerald-900 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-950/60"
+                      }`}
+                      aria-label={inStock ? `Disable ${p.name}` : `Enable ${p.name}`}
+                    >
+                      {stockSaving ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : inStock ? (
+                        <PowerOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Power className="h-3.5 w-3.5" />
+                      )}
+                      {inStock ? "Disable" : "Enable"}
+                    </button>
+                    <Link
+                      href={`/admin/products/${p.id}`}
+                      className="inline-flex min-h-10 items-center px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                    >
+                      Edit
+                    </Link>
+                    <SingleDeleteButton
+                      id={p.id}
+                      name={p.name}
+                      onDeleted={() => {
+                        markRemoved([p.id]);
+                        clearSelection();
+                        flash("Product deleted");
+                        router.refresh();
+                      }}
+                      onError={(message) => flash(message)}
+                    />
                   </div>
                 </div>
               </div>
