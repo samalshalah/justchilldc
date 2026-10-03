@@ -316,6 +316,80 @@ export function buildOrderEmailMessages({
   return messages;
 }
 
+export function buildOrderReadyEmailMessages({
+  settings,
+  order,
+  siteUrl,
+  fromEmail,
+}: BuildOrderEmailMessagesInput): OrderEmailMessage[] {
+  if (!settings.store?.order_confirmation_enabled) return [];
+
+  const fromAddress = normalizeEmail(fromEmail);
+  const customerEmail = normalizeEmail(order.customerEmail);
+  if (!fromAddress || !customerEmail) return [];
+
+  const storeName = displayName(settings.store?.name);
+  const baseUrl = normalizeBaseUrl(siteUrl);
+  const orderUrl = `${baseUrl}/order/${order.id}`;
+  const storeRecipients = normalizeEmailList(
+    settings.store?.order_confirmation_email ?? settings.contact?.email
+  );
+  const primaryStoreRecipient = storeRecipients[0];
+  const storePhone = firstPresent(settings.contact?.phone, settings.location?.phone, settings.store?.phone);
+  const pickupAddress = firstPresent(settings.location?.address, settings.store?.address);
+  const from = `${storeName} <${fromAddress}>`;
+  const safeName = escapeHtml(storeName);
+  const safeCode = escapeHtml(order.confirmationCode);
+  const safeCustomerName = escapeHtml(order.customerName);
+  const safeOrderUrl = escapeHtml(orderUrl);
+  const safePickupAddress = escapeHtml(pickupAddress);
+
+  const text = [
+    `${storeName} order ${order.confirmationCode} is ready for pickup.`,
+    `Hi ${order.customerName}, your pickup order is ready.`,
+    pickupAddress ? `Pickup address: ${pickupAddress}` : "",
+    storePhone ? `Store phone: ${storePhone}` : "",
+    `View order: ${orderUrl}`,
+    "",
+    "Please bring a valid government-issued ID for pickup.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.5;">
+      <h1 style="font-size:22px;margin:0 0 12px;">Your ${safeName} order is ready</h1>
+      <p style="margin:0 0 16px;">Hi ${safeCustomerName}, your pickup order <strong>${safeCode}</strong> is ready.</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+        <tbody>
+          ${
+            safePickupAddress
+              ? `<tr><td style="padding:4px 0;color:#6b7280;">Pickup address</td><td style="padding:4px 0;text-align:right;">${safePickupAddress}</td></tr>`
+              : ""
+          }
+          ${
+            storePhone
+              ? `<tr><td style="padding:4px 0;color:#6b7280;">Store phone</td><td style="padding:4px 0;text-align:right;">${escapeHtml(storePhone)}</td></tr>`
+              : ""
+          }
+        </tbody>
+      </table>
+      <p><a href="${safeOrderUrl}" style="color:#047857;font-weight:bold;">View your order</a></p>
+      <p style="margin-top:18px;color:#6b7280;font-size:13px;">Please bring a valid government-issued ID for pickup.</p>
+    </div>`;
+
+  return [
+    {
+      from,
+      to: customerEmail,
+      subject: `${storeName} order ${order.confirmationCode} is ready`,
+      html,
+      text,
+      reply_to: primaryStoreRecipient,
+    },
+  ];
+}
+
 export async function sendOrderEmailMessages({
   apiKey,
   messages,

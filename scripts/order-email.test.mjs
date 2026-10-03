@@ -138,6 +138,37 @@ test("builds one store notification for each configured notification email", () 
   assert.equal(messages[2].reply_to, "customer@example.com");
 });
 
+test("builds a customer ready-for-pickup email", () => {
+  const messages = mod.buildOrderReadyEmailMessages({
+    settings: baseSettings,
+    order: { ...baseOrder, status: "ready" },
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.equal(messages.length, 1);
+  assert.equal(messages[0].to, "customer@example.com");
+  assert.equal(messages[0].reply_to, "orders@example.com");
+  assert.match(messages[0].subject, /JC-ABC123 is ready/);
+  assert.match(messages[0].text, /ready for pickup/);
+  assert.match(messages[0].html, /Your Just Chill DC order is ready/);
+  assert.match(messages[0].html, /https:\/\/justchilldc\.com\/order\/123/);
+});
+
+test("does not build ready emails when order emails are disabled", () => {
+  const messages = mod.buildOrderReadyEmailMessages({
+    settings: {
+      ...baseSettings,
+      store: { ...baseSettings.store, order_confirmation_enabled: false },
+    },
+    order: { ...baseOrder, status: "ready" },
+    siteUrl: "https://justchilldc.com",
+    fromEmail: "orders@justchilldc.com",
+  });
+
+  assert.deepEqual(messages, []);
+});
+
 test("send payload only includes Resend REST email fields", async () => {
   let parsedBody;
   const response = await mod.sendOrderEmailMessages({

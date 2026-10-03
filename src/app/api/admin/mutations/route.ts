@@ -260,9 +260,55 @@ async function setOrderStatus(
   status: "pending" | "ready" | "completed" | "cancelled"
 ) {
   const { db, ordersTable } = await import("@/lib/db");
+  const existing = await db
+    .select({ status: ordersTable.status })
+    .from(ordersTable)
+    .where(eq(ordersTable.id, id))
+    .limit(1);
+  const previousStatus = existing[0]?.status;
+
   await db.update(ordersTable).set({ status }).where(eq(ordersTable.id, id));
   revalidatePath("/admin/orders");
   revalidatePath("/admin");
+
+  if (status === "ready" && previousStatus !== "ready") {
+    const [
+      { getOrderById },
+      { getSiteSettings },
+      {
+        buildOrderReadyEmailMessages,
+        defaultOrderFromEmail,
+        sendOrderEmailMessages,
+      },
+    ] = await Promise.all([
+      import("@/lib/data"),
+      import("@/lib/settings"),
+      import("@/lib/order-email"),
+    ]);
+    const [order, settings] = await Promise.all([
+      getOrderById(id),
+      getSiteSettings(),
+    ]);
+    if (order) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://justchilldc.com";
+      const messages = buildOrderReadyEmailMessages({
+        settings,
+        order,
+        siteUrl,
+        fromEmail:
+          process.env.RESEND_FROM_EMAIL ??
+          defaultOrderFromEmail(settings, siteUrl),
+      });
+      const emailResult = await sendOrderEmailMessages({
+        apiKey: process.env.RESEND_API_KEY,
+        messages,
+      });
+      if (emailResult.failed > 0) {
+        console.warn("[orders] ready email send failed:", emailResult.errors);
+      }
+    }
+  }
+
   return { ok: true };
 }
 
