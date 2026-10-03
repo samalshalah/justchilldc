@@ -193,7 +193,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
   if (stage === "upload") {
     return (
       <div className="max-w-2xl">
-        <label className="block w-full border-2 border-dashed border-zinc-700 rounded-2xl p-12 text-center cursor-pointer hover:border-amber-600 hover:bg-amber-950/10 transition-colors">
+        <label className="block w-full border-2 border-dashed border-zinc-700 rounded-2xl p-8 text-center cursor-pointer hover:border-amber-600 hover:bg-amber-950/10 transition-colors sm:p-12">
           <input
             type="file"
             className="hidden"
@@ -274,7 +274,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
           <select
             value={bulkStrain}
             onChange={(e) => setBulkStrain(e.target.value as StrainType)}
-            className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-amber-600"
+            className="min-h-10 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-1.5 text-sm text-zinc-100 focus:outline-none focus:border-amber-600"
           >
             {STRAIN_OPTIONS.map((s) => (
               <option key={s} value={s}>
@@ -285,16 +285,108 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
           <button
             type="button"
             onClick={applyBulkStrain}
-            className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg"
+            className="min-h-10 px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded-lg"
           >
             Apply to all
           </button>
-          <span className="text-xs text-zinc-500 ml-auto">
+          <span className="w-full text-xs text-zinc-500 sm:ml-auto sm:w-auto">
             (You can override per-row below)
           </span>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden mb-4">
+        <div className="mb-4 space-y-3 md:hidden">
+          {rows.map((r, i) => (
+            <div
+              key={`${r.sku}-${i}-card`}
+              className={`rounded-xl border border-zinc-800 bg-zinc-900 p-4 ${
+                r.skip ? "opacity-50" : ""
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={!r.skip}
+                  onChange={(e) => updateRow(i, { skip: !e.target.checked })}
+                  className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950 accent-amber-600"
+                  aria-label={`Import ${r.name}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium leading-snug">{r.name}</p>
+                  <p className="mt-1 font-mono text-xs text-zinc-500">
+                    SKU {r.sku}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">Category</p>
+                  <p className="font-medium">{r.category}</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">Brand</p>
+                  <p className="font-medium">{r.brand ? titleCase(r.brand) : "-"}</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">Price</p>
+                  <p className="font-mono font-medium">${r.price}</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">Qty</p>
+                  <p className="font-mono font-medium">{r.quantity}</p>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">THC / Size</p>
+                  <p className="font-mono font-medium">
+                    {r.thc || "-"} / {r.weight || "-"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-zinc-800 p-2">
+                  <p className="text-xs text-zinc-500">Strain</p>
+                  <p className="font-medium">
+                    {r.strainName ? titleCase(r.strainName) : "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    r.strainConfidence === "high"
+                      ? "bg-emerald-500"
+                      : r.strainConfidence === "medium"
+                      ? "bg-amber-500"
+                      : "bg-zinc-600"
+                  }`}
+                  title={`${r.strainConfidence} confidence: ${r.strainReason}`}
+                  aria-label={`Confidence: ${r.strainConfidence}. ${r.strainReason}`}
+                />
+                <select
+                  value={r.strainType}
+                  onChange={(e) =>
+                    updateRow(i, { strainType: e.target.value as StrainType })
+                  }
+                  className="min-h-10 flex-1 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm text-zinc-100"
+                >
+                  {STRAIN_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {r.warnings.length > 0 && (
+                <div className="mt-3 flex items-start gap-2 rounded-lg border border-amber-900 bg-amber-950/30 p-2 text-xs text-amber-200">
+                  <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
+                  <span>{r.warnings.join("; ")}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="hidden bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden mb-4 md:block">
           <div className="overflow-x-auto max-h-[60vh]">
             <table className="w-full text-sm">
               <thead className="bg-zinc-800 sticky top-0 z-10">
@@ -429,7 +521,7 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
             type="button"
             onClick={onRunImport}
             disabled={pending || selected === 0}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg disabled:opacity-60"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg disabled:opacity-60 sm:w-auto"
           >
             {pending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -442,11 +534,11 @@ export function ImportClient({ onImported }: ImportClientProps = {}) {
             type="button"
             onClick={reset}
             disabled={pending}
-            className="px-5 py-2.5 border border-zinc-700 hover:bg-zinc-800 rounded-lg disabled:opacity-50"
+            className="min-h-11 w-full px-5 py-2.5 border border-zinc-700 hover:bg-zinc-800 rounded-lg disabled:opacity-50 sm:w-auto"
           >
             Cancel
           </button>
-          <span className="text-sm text-zinc-500 ml-auto">
+          <span className="text-sm text-zinc-500 sm:ml-auto">
             Existing products are matched by SKU and updated; new SKUs are
             inserted.
           </span>

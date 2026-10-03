@@ -166,19 +166,19 @@ export function ProductForm({ categories, brands, product }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-3xl">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-3xl space-y-5 pb-28 md:space-y-6 md:pb-0">
       {error && (
         <div className="bg-red-950/40 border border-red-900 text-red-300 rounded-lg p-3 text-sm">
           {error}
         </div>
       )}
 
-      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4 sm:p-5">
         <h2 className="font-semibold text-zinc-200">Basics</h2>
         <Field label="Name" error={errors.name?.message}>
           <Input {...register("name", { required: "Name is required" })} />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Category">
             <Select {...register("category")}>
               {categories.map((c) => (
@@ -211,12 +211,12 @@ export function ProductForm({ categories, brands, product }: Props) {
         </Field>
         <Field label="Description">
           <div>
-            <Textarea rows={4} {...register("description", { required: true })} />
+            <Textarea rows={6} {...register("description", { required: true })} />
             <button
               type="button"
               onClick={handleGenerateDescription}
               disabled={generating}
-              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs border border-zinc-700 hover:border-amber-600 hover:bg-amber-950/20 text-zinc-300 hover:text-amber-400 rounded-lg transition-colors disabled:opacity-50"
+              className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-1.5 px-3 py-1.5 text-xs border border-zinc-700 hover:border-amber-600 hover:bg-amber-950/20 text-zinc-300 hover:text-amber-400 rounded-lg transition-colors disabled:opacity-50 sm:w-auto"
             >
               {generating ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -229,9 +229,9 @@ export function ProductForm({ categories, brands, product }: Props) {
         </Field>
       </section>
 
-      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4 sm:p-5">
         <h2 className="font-semibold text-zinc-200">Pricing & Stock</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Price ($)" error={errors.price?.message}>
             <Input
               type="number"
@@ -246,7 +246,7 @@ export function ProductForm({ categories, brands, product }: Props) {
             <Input type="number" min={0} {...register("salePrice")} />
           </Field>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
           <Field label="Stock quantity">
             <Input type="number" min={0} {...register("quantity")} />
           </Field>
@@ -257,15 +257,15 @@ export function ProductForm({ categories, brands, product }: Props) {
             <Input {...register("sku")} />
           </Field>
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-6">
           <Checkbox label="In stock" {...register("inStock")} />
           <Checkbox label="Featured" {...register("featured")} />
         </div>
       </section>
 
-      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4 sm:p-5">
         <h2 className="font-semibold text-zinc-200">Specs</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="THC">
             <Input {...register("thc")} placeholder="e.g. 22%" />
           </Field>
@@ -290,7 +290,7 @@ export function ProductForm({ categories, brands, product }: Props) {
         </Field>
       </section>
 
-      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+      <section className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-4 sm:p-5">
         <h2 className="font-semibold text-zinc-200">Image</h2>
         <input type="hidden" {...register("imageType")} />
         <Field
@@ -301,7 +301,7 @@ export function ProductForm({ categories, brands, product }: Props) {
         </Field>
       </section>
 
-      <div className="flex gap-3">
+      <div className="hidden gap-3 md:flex">
         <button
           type="submit"
           disabled={pending}
@@ -317,6 +317,26 @@ export function ProductForm({ categories, brands, product }: Props) {
         >
           Cancel
         </button>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-16 z-40 border-t border-slate-200 bg-white p-3 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] md:hidden">
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="submit"
+            disabled={pending}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-amber-500 disabled:opacity-60"
+          >
+            {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {product ? "Save" : "Create"}
+          </button>
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="min-h-11 rounded-lg border border-zinc-700 px-4 py-2.5 transition-colors hover:bg-zinc-800"
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </form>
   );

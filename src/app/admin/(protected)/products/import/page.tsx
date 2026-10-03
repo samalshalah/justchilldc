@@ -7,7 +7,9 @@ export const metadata = {
 export default function AdminImportPage() {
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">Import Products</h1>
+      <h1 className="mb-2 text-2xl font-bold leading-tight sm:text-3xl">
+        Import Products
+      </h1>
       <p className="text-zinc-400 mb-6">
         Upload a CSV export from your POS (Dutchie, Flowhub, Treez, or
         compatible). Products are matched to existing rows by SKU; missing

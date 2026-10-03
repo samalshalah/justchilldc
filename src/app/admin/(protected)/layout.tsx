@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ExternalLink, ShieldCheck } from "lucide-react";
 import { LoginForm } from "../login/LoginForm";
 import { AdminShellNav } from "./AdminShellNav";
+import { AdminMobileNav } from "./AdminMobileNav";
 import { LogoutButton } from "./LogoutButton";
 
 const COOKIE_NAME = "jc_admin_session";
@@ -88,9 +89,10 @@ export default async function ProtectedAdminLayout({
             View Store
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
-          <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700">
+          <span className="hidden rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 md:inline-flex">
             Admin
           </span>
+          <AdminMobileNav storeName={storeName} city={city} />
         </div>
       </header>
 
@@ -105,7 +107,9 @@ export default async function ProtectedAdminLayout({
             <LogoutButton />
           </div>
         </aside>
-        <main className="min-w-0 flex-1 p-5 md:p-8">{children}</main>
+        <main className="min-w-0 flex-1 p-4 pb-24 sm:p-5 sm:pb-24 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

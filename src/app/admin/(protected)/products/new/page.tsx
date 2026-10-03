@@ -7,7 +7,9 @@ export default async function NewProductPage() {
   const [categories, brands] = await Promise.all([getCategories(), getBrands()]);
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">New Product</h1>
+      <h1 className="mb-6 text-2xl font-bold leading-tight sm:text-3xl">
+        New Product
+      </h1>
       <ProductForm categories={categories} brands={brands} />
     </div>
   );

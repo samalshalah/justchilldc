@@ -212,7 +212,7 @@ export function ProductsList({ products }: Props) {
           type="button"
           onClick={toggleAllVisible}
           disabled={filtered.length === 0}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-zinc-700 hover:bg-zinc-800 rounded-lg disabled:opacity-40"
+          className="inline-flex min-h-10 items-center gap-1.5 px-3 py-1.5 text-sm border border-zinc-700 hover:bg-zinc-800 rounded-lg disabled:opacity-40"
         >
           {allSelected ? (
             <CheckSquare className="w-4 h-4" />
@@ -237,14 +237,14 @@ export function ProductsList({ products }: Props) {
           </button>
         )}
 
-        <div className="ml-auto relative">
+        <div className="relative w-full sm:ml-auto sm:w-72">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, SKU, category"
-            className="pl-8 pr-3 py-1.5 text-sm rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-amber-600"
+            className="min-h-10 w-full pl-8 pr-3 py-1.5 text-sm rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-amber-600"
           />
         </div>
       </div>
@@ -338,60 +338,67 @@ export function ProductsList({ products }: Props) {
             return (
               <div
                 key={p.id}
-                className={`flex items-center gap-3 bg-zinc-900 border rounded-xl p-3 transition-colors ${
+                className={`bg-zinc-900 border rounded-xl p-3 transition-colors sm:flex sm:items-center sm:gap-3 ${
                   isSelected
                     ? "border-amber-600"
                     : "border-zinc-800 hover:border-zinc-700"
                 }`}
               >
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={() => toggle(p.id)}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-amber-600 shrink-0"
-                  aria-label={`Select ${p.name}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => toggleSingleFeatured(p.id, featured)}
-                  disabled={featuredSaving}
-                  className={`p-1.5 rounded-lg transition-colors shrink-0 ${
-                    featured
-                      ? "text-amber-400 hover:bg-amber-950/30"
-                      : "text-zinc-600 hover:text-amber-400 hover:bg-zinc-800"
-                  } disabled:opacity-50`}
-                  aria-label={featured ? `Unfeature ${p.name}` : `Feature ${p.name}`}
-                  title={featured ? "Featured — click to unfeature" : "Click to feature"}
-                >
-                  {featuredSaving ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Star
-                      className="w-4 h-4"
-                      fill={featured ? "currentColor" : "none"}
-                    />
-                  )}
-                </button>
-                <div
-                  className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg ${
-                    isProductLogoFallback(p) ? "bg-white" : "bg-zinc-950"
-                  }`}
-                >
-                  <img
-                    src={productImageUrl(p)}
-                    alt={p.name}
-                    className={`h-full w-full ${productImageFitClass(p, "p-2")}`}
+                <div className="flex min-w-0 items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggle(p.id)}
+                    className="mt-5 w-4 h-4 rounded border-zinc-700 bg-zinc-950 accent-amber-600 shrink-0 sm:mt-0"
+                    aria-label={`Select ${p.name}`}
                   />
+                  <button
+                    type="button"
+                    onClick={() => toggleSingleFeatured(p.id, featured)}
+                    disabled={featuredSaving}
+                    className={`mt-4 p-1.5 rounded-lg transition-colors shrink-0 sm:mt-0 ${
+                      featured
+                        ? "text-amber-400 hover:bg-amber-950/30"
+                        : "text-zinc-600 hover:text-amber-400 hover:bg-zinc-800"
+                    } disabled:opacity-50`}
+                    aria-label={featured ? `Unfeature ${p.name}` : `Feature ${p.name}`}
+                    title={featured ? "Featured - click to unfeature" : "Click to feature"}
+                  >
+                    {featuredSaving ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Star
+                        className="w-4 h-4"
+                        fill={featured ? "currentColor" : "none"}
+                      />
+                    )}
+                  </button>
+                  <div
+                    className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg ${
+                      isProductLogoFallback(p) ? "bg-white" : "bg-zinc-950"
+                    }`}
+                  >
+                    <img
+                      src={productImageUrl(p)}
+                      alt={p.name}
+                      className={`h-full w-full ${productImageFitClass(p, "p-2")}`}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-2 font-medium leading-snug sm:truncate">
+                      {p.name}
+                    </p>
+                    <p className="mt-1 flex flex-wrap gap-x-2 gap-y-1 text-sm text-zinc-500">
+                      <span>{p.category}</span>
+                      <span>{p.strain}</span>
+                      <span>${p.price}</span>
+                      {p.salePrice ? <span>sale ${p.salePrice}</span> : null}
+                      {p.quantity != null ? <span>qty {p.quantity}</span> : null}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{p.name}</p>
-                  <p className="text-sm text-zinc-500">
-                    {p.category} · {p.strain} · ${p.price}
-                    {p.salePrice ? ` (sale $${p.salePrice})` : ""}
-                    {p.quantity != null && ` · qty ${p.quantity}`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-zinc-800 pt-3 sm:mt-0 sm:ml-auto sm:shrink-0 sm:justify-end sm:border-0 sm:pt-0">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
                   {!p.inStock && (
                     <span className="px-2 py-0.5 text-xs rounded bg-red-900/30 text-red-300 border border-red-800">
                       OOS
@@ -402,9 +409,11 @@ export function ProductsList({ products }: Props) {
                       Sale
                     </span>
                   )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
                   <Link
                     href={`/admin/products/${p.id}`}
-                    className="px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+                    className="inline-flex min-h-10 items-center px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
                   >
                     Edit
                   </Link>
@@ -419,6 +428,7 @@ export function ProductsList({ products }: Props) {
                     }}
                     onError={(message) => flash(message)}
                   />
+                  </div>
                 </div>
               </div>
             );
@@ -501,7 +511,7 @@ function SingleDeleteButton({
       type="button"
       onClick={onClick}
       disabled={pending}
-      className="p-2 rounded-lg text-zinc-400 hover:bg-red-950/40 hover:text-red-400 transition-colors disabled:opacity-50"
+      className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg p-2 text-zinc-400 hover:bg-red-950/40 hover:text-red-400 transition-colors disabled:opacity-50"
       aria-label={`Delete ${name}`}
     >
       <Trash2 className="w-4 h-4" />

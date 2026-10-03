@@ -23,7 +23,7 @@ import {
   Wand2,
 } from "lucide-react";
 
-const NAV = [
+export const NAV = [
   { type: "section", label: "Daily Work" },
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/onboarding", label: "Setup Wizard", icon: Wand2 },
@@ -51,7 +51,7 @@ const NAV = [
   { href: "/admin/store/advanced", label: "Integrations", icon: Plug },
 ] as const;
 
-function isActivePath(pathname: string, href: string): boolean {
+export function isActivePath(pathname: string, href: string): boolean {
   if (href === "/admin") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
