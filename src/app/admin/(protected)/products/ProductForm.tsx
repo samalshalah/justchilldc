@@ -72,6 +72,7 @@ export function ProductForm({ categories, brands, product }: Props) {
     handleSubmit,
     getValues,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<FormShape>({
     defaultValues: {
@@ -97,6 +98,7 @@ export function ProductForm({ categories, brands, product }: Props) {
       inStock: product?.inStock ?? true,
     },
   });
+  const productName = watch("name");
 
   const onSubmit = (values: FormShape) => {
     setError(null);
@@ -297,7 +299,13 @@ export function ProductForm({ categories, brands, product }: Props) {
           label="Product image"
           hint="Leave blank to show the product brand logo. Upload a product photo later to override it."
         >
-          <AdminImageUploader value={imageUrl} onChange={setImageUrl} />
+          <AdminImageUploader
+            value={imageUrl}
+            onChange={setImageUrl}
+            fileNameBase={productName || product?.name || "product"}
+            folder="products"
+            entityId={product?.id ?? null}
+          />
         </Field>
       </section>
 

@@ -31,12 +31,19 @@ async function isAdmin(): Promise<boolean> {
   return hmacHex(secret, issuedAtStr) === sig;
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Not authorized" }, { status: 401 });
   }
   try {
-    const { uploadUrl, objectPath } = getUploadTarget();
+    const input = (await req.json().catch(() => ({}))) as {
+      filename?: string;
+      contentType?: string;
+      nameHint?: string;
+      folder?: string;
+      entityId?: string | number | null;
+    };
+    const { uploadUrl, objectPath } = getUploadTarget(input);
     return NextResponse.json({ uploadUrl, objectPath });
   } catch (err) {
     console.error("[upload-url] error:", err);

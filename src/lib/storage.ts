@@ -108,14 +108,26 @@ async function putLocalObject({
 export async function getEntityObject(entityPath: string): Promise<R2ObjectBody> {
   const norm = entityPath.startsWith("/") ? entityPath : `/${entityPath}`;
   if (!norm.startsWith("/objects/")) throw new ObjectNotFoundError();
-  if (isLocalPreviewMode()) {
-    const object = await getLocalObject(normalizeKey(norm));
-    if (!object) throw new ObjectNotFoundError();
-    return object;
+  const candidatePaths = [norm];
+  const uploadAlias = norm.match(/^\/objects\/uploads\/([^/]+)\/[^/]+$/);
+  if (uploadAlias && uploadAlias[1] !== "products") {
+    candidatePaths.push(`/objects/uploads/${uploadAlias[1]}`);
   }
-  const object = await mediaBucket().get(normalizeKey(norm));
-  if (!object) throw new ObjectNotFoundError();
-  return object;
+
+  if (isLocalPreviewMode()) {
+    for (const candidatePath of candidatePaths) {
+      const object = await getLocalObject(normalizeKey(candidatePath));
+      if (object) return object;
+    }
+    throw new ObjectNotFoundError();
+  }
+
+  for (const candidatePath of candidatePaths) {
+    const object = await mediaBucket().get(normalizeKey(candidatePath));
+    if (object) return object;
+  }
+
+  throw new ObjectNotFoundError();
 }
 
 export async function findPublicObject(filename: string): Promise<R2ObjectBody | null> {
@@ -139,9 +151,59 @@ export function streamObject(
   return new Response(object.body, { headers });
 }
 
-export function getUploadTarget(): { uploadUrl: string; objectPath: string } {
+function seoSlug(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-")
+    .slice(0, 96) || "upload";
+}
+
+function extensionFromUpload(input: {
+  filename?: string | null;
+  contentType?: string | null;
+}): string {
+  const filename = input.filename?.toLowerCase().trim() ?? "";
+  const match = filename.match(/\.(avif|webp|png|jpe?g|gif|svg)$/);
+  if (match) return match[0] === ".jpeg" ? ".jpg" : match[0];
+
+  const contentType = input.contentType?.toLowerCase().trim();
+  if (contentType === "image/avif") return ".avif";
+  if (contentType === "image/webp") return ".webp";
+  if (contentType === "image/png") return ".png";
+  if (contentType === "image/gif") return ".gif";
+  if (contentType === "image/svg+xml") return ".svg";
+  return ".jpg";
+}
+
+function uploadFolder(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const folder = seoSlug(value);
+  return folder === "upload" ? null : folder;
+}
+
+export function getUploadTarget(input: {
+  filename?: string | null;
+  nameHint?: string | null;
+  contentType?: string | null;
+  folder?: string | null;
+  entityId?: string | number | null;
+} = {}): { uploadUrl: string; objectPath: string } {
   const objectId = randomUUID();
-  const objectPath = `/objects/uploads/${objectId}`;
+  const baseName = input.nameHint?.trim() || input.filename?.replace(/\.[^.]+$/, "") || "";
+  const slug = seoSlug(baseName);
+  const shortId = objectId.slice(0, 8);
+  const entityId = input.entityId
+    ? seoSlug(String(input.entityId)).replace(/^upload$/, "")
+    : "";
+  const suffix = [entityId, shortId].filter(Boolean).join("-");
+  const filename = `${slug}${suffix ? `-${suffix}` : ""}${extensionFromUpload(input)}`;
+  const folder = uploadFolder(input.folder);
+  const objectPath = `/objects/uploads/${folder ? `${folder}/` : ""}${filename}`;
   return {
     uploadUrl: `/api/admin/upload-url?objectPath=${encodeURIComponent(objectPath)}`,
     objectPath,

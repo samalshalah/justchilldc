@@ -6,6 +6,9 @@ import { Upload, X, Loader2 } from "lucide-react";
 interface Props {
   value: string;
   onChange: (newPath: string) => void;
+  fileNameBase?: string;
+  folder?: string;
+  entityId?: string | number | null;
 }
 
 function imageSrc(value: string): string {
@@ -20,7 +23,13 @@ function imageSrc(value: string): string {
   return `/api/storage${value}`;
 }
 
-export function AdminImageUploader({ value, onChange }: Props) {
+export function AdminImageUploader({
+  value,
+  onChange,
+  fileNameBase,
+  folder,
+  entityId,
+}: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,14 +38,24 @@ export function AdminImageUploader({ value, onChange }: Props) {
     setUploading(true);
     try {
       // Get signed PUT URL from server
-      const tokenRes = await fetch("/api/admin/upload-url", { method: "POST" });
+      const tokenRes = await fetch("/api/admin/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          nameHint: fileNameBase,
+          folder,
+          entityId,
+        }),
+      });
       if (!tokenRes.ok) {
         const j = await tokenRes.json().catch(() => ({}));
         throw new Error(j.error || "Could not get upload URL");
       }
       const { uploadUrl, objectPath } = await tokenRes.json();
 
-      // PUT the file directly to GCS
+      // PUT the file through the admin upload proxy into object storage.
       const putRes = await fetch(uploadUrl, {
         method: "PUT",
         headers: { "Content-Type": file.type },

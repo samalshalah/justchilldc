@@ -10,6 +10,7 @@ import { useSettings } from "./SettingsProvider";
 import {
   isProductLogoFallback,
   isStorageImageUrl,
+  productImageAlt,
   productImageFitClass,
   productImageUrl,
 } from "@/lib/images";
@@ -132,11 +133,12 @@ export function ProductCard({
   const cardShape =
     CARD_SHAPE[sc.card_shape ?? mc.card_shape ?? "rounded"] ?? "rounded-lg";
 
-  const imageUrl = productImageUrl(product);
-  const logoFallback = isProductLogoFallback(product);
   const displayName = product.name;
   const city = settings.location?.city || settings.seo?.city || DEFAULTS.city;
   const storeName = settings.store?.name || DEFAULTS.storeName;
+  const imageUrl = productImageUrl(product);
+  const imageAlt = productImageAlt(product, storeName);
+  const logoFallback = isProductLogoFallback(product);
   const cardDescription = isStaleGeneratedSeoCopy(product.description)
     ? `Shop ${displayName} at ${storeName} in ${city}. View product details, category, strain type, price, and availability from the live menu.`
     : product.description;
@@ -237,7 +239,7 @@ export function ProductCard({
           )}
           <Image
             src={imageUrl}
-            alt={displayName}
+            alt={imageAlt}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             unoptimized={isStorageImageUrl(imageUrl)}

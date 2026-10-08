@@ -10,6 +10,7 @@ import { AddToCartButton } from "@/components/AddToCartButton";
 import {
   isProductLogoFallback,
   isStorageImageUrl,
+  productImageAlt,
   productImageFitClass,
   productImageUrl,
 } from "@/lib/images";
@@ -200,6 +201,7 @@ export default async function ProductDetailPage({
   const flavors = parseJsonArr(product.flavors);
   const feelings = getProductFeelings(product);
   const imageUrl = productImageUrl(product);
+  const imageAlt = productImageAlt(product, storeName);
   const logoFallback = isProductLogoFallback(product);
   const productThc = hasDetailValue(product.thc) ? product.thc : "";
   const productCbd = hasDetailValue(product.cbd) ? product.cbd : "";
@@ -384,7 +386,7 @@ export default async function ProductDetailPage({
               )}
               <Image
                 src={imageUrl}
-                alt={displayName}
+                alt={imageAlt}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"

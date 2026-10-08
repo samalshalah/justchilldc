@@ -8,6 +8,10 @@
 const PRODUCT_IMAGE_PLACEHOLDER = "/images/product-placeholder.svg";
 
 type ProductImageInput = {
+  id?: number | null;
+  name?: string | null;
+  category?: string | null;
+  brandName?: string | null;
   imageUrl?: string | null;
   imageType?: string | null;
   brandLogoUrl?: string | null;
@@ -26,12 +30,62 @@ function storageUrl(path: string | null | undefined): string | null {
   return `/api/storage${path}`;
 }
 
+function seoSlug(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, " and ")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-")
+    .slice(0, 96) || "product";
+}
+
+function extensionFromImagePath(path: string): string {
+  const cleanPath = path.split(/[?#]/)[0].toLowerCase();
+  const match = cleanPath.match(/\.(avif|webp|png|jpe?g|gif|svg)$/);
+  if (!match) return ".jpg";
+  return match[0] === ".jpeg" ? ".jpg" : match[0];
+}
+
+function seoProductImageUrl(
+  url: string,
+  product: ProductImageInput
+): string {
+  const uploadPrefix = "/api/storage/objects/uploads/";
+  if (!url.startsWith(uploadPrefix)) return url;
+
+  const uploadKey = url.slice(uploadPrefix.length).split(/[?#]/)[0];
+  if (!uploadKey || uploadKey.includes("/")) return url;
+
+  const slugBase = [product.name, product.category, product.brandName]
+    .filter((part): part is string => Boolean(part?.trim()))
+    .join(" ");
+  const slug = seoSlug(slugBase || uploadKey);
+  const idPart = product.id ? `-${product.id}` : "";
+  const ext = extensionFromImagePath(url);
+  return `${url}/${slug}${idPart}${ext}`;
+}
+
 export function productImageUrl(product: ProductImageInput): string {
-  return (
-    storageUrl(product.imageUrl) ??
-    storageUrl(product.brandLogoUrl) ??
-    PRODUCT_IMAGE_PLACEHOLDER
-  );
+  const uploadedImageUrl = storageUrl(product.imageUrl);
+  if (uploadedImageUrl) return seoProductImageUrl(uploadedImageUrl, product);
+
+  return storageUrl(product.brandLogoUrl) ?? PRODUCT_IMAGE_PLACEHOLDER;
+}
+
+export function productImageAlt(
+  product: ProductImageInput,
+  storeName?: string
+): string {
+  const productName = product.name?.trim() || "Product image";
+  const descriptors = [product.brandName, product.category]
+    .filter((part): part is string => Boolean(part?.trim()))
+    .filter((part) => part.toLowerCase() !== productName.toLowerCase());
+  const descriptorText = descriptors.length ? ` - ${descriptors.join(" ")}` : "";
+  const storeText = storeName?.trim() ? ` at ${storeName.trim()}` : "";
+  return `${productName}${descriptorText}${storeText}`;
 }
 
 export function isProductLogoFallback(product: ProductImageInput): boolean {
