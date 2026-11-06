@@ -11,6 +11,7 @@ interface Props {
   fileNameBase?: string;
   folder?: string;
   entityId?: string | number | null;
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 function imageSrc(value: string): string {
@@ -31,6 +32,7 @@ export function AdminImageUploader({
   fileNameBase,
   folder,
   entityId,
+  onUploadingChange,
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export function AdminImageUploader({
   const handleFile = async (file: File) => {
     setError(null);
     setUploading(true);
+    onUploadingChange?.(true);
     try {
       if (file.size > MAX_IMAGE_UPLOAD_BYTES) throw new Error("Choose an image smaller than 20 MB.");
       const variants = folder === "products" ? await createUploadVariants(file) : [];
@@ -83,6 +86,7 @@ export function AdminImageUploader({
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
     }
   };
 

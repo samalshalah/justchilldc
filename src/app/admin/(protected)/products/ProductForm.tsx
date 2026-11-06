@@ -65,6 +65,7 @@ export function ProductForm({ categories, brands, product }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? "");
+  const [imageUploading, setImageUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const {
@@ -101,6 +102,7 @@ export function ProductForm({ categories, brands, product }: Props) {
   const productName = watch("name");
 
   const onSubmit = (values: FormShape) => {
+    if (imageUploading) return;
     setError(null);
     const input: ProductInput = {
       ...(product?.id ? { id: product.id } : {}),
@@ -305,6 +307,7 @@ export function ProductForm({ categories, brands, product }: Props) {
             fileNameBase={productName || product?.name || "product"}
             folder="products"
             entityId={product?.id ?? null}
+            onUploadingChange={setImageUploading}
           />
         </Field>
       </section>
@@ -312,10 +315,10 @@ export function ProductForm({ categories, brands, product }: Props) {
       <div className="hidden gap-3 md:flex">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || imageUploading}
           className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 disabled:opacity-60"
         >
-          {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+          {(pending || imageUploading) && <Loader2 className="w-4 h-4 animate-spin" />}
           {product ? "Save changes" : "Create product"}
         </button>
         <button
@@ -331,10 +334,10 @@ export function ProductForm({ categories, brands, product }: Props) {
         <div className="grid grid-cols-2 gap-2">
           <button
             type="submit"
-            disabled={pending}
+            disabled={pending || imageUploading}
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-amber-500 disabled:opacity-60"
           >
-            {pending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {(pending || imageUploading) && <Loader2 className="w-4 h-4 animate-spin" />}
             {product ? "Save" : "Create"}
           </button>
           <button

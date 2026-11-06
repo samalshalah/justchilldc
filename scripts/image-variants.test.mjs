@@ -81,3 +81,13 @@ test("browser upload generates three WebP sizes without enlarging small photos",
   assert.equal(closed, true);
   await assert.rejects(upload.createUploadVariants(new File(["gif"], "animated.gif", { type: "image/gif" })), /product photo/);
 });
+
+test("product saves wait until image uploads finish on desktop and mobile", async () => {
+  const form = await readFile("src/app/admin/(protected)/products/ProductForm.tsx", "utf8");
+  assert.match(form, /if \(imageUploading\) return;/);
+  assert.match(form, /onUploadingChange=\{setImageUploading\}/);
+  assert.equal([...form.matchAll(/disabled=\{pending \|\| imageUploading\}/g)].length, 2);
+  const uploader = await readFile("src/components/AdminImageUploader.tsx", "utf8");
+  assert.match(uploader, /onUploadingChange\?\.\(true\)/);
+  assert.match(uploader, /finally \{[\s\S]*onUploadingChange\?\.\(false\)/);
+});
