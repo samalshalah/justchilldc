@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { ProductImage } from "./ProductImage";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Leaf, Plus, Tag } from "lucide-react";
@@ -9,7 +9,6 @@ import { useCart } from "./CartContext";
 import { useSettings } from "./SettingsProvider";
 import {
   isProductLogoFallback,
-  isStorageImageUrl,
   productImageAlt,
   productImageFitClass,
   productImageUrl,
@@ -237,15 +236,12 @@ export function ProductCard({
           {showImageGradient && !logoFallback && (
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
           )}
-          <Image
+          <ProductImage
             src={imageUrl}
             alt={imageAlt}
-            fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            unoptimized={isStorageImageUrl(imageUrl)}
             className={`${productImageFitClass(product)} transition-transform duration-500 ease-out group-hover:scale-105`}
             priority={priority}
-            loading={priority ? undefined : "lazy"}
           />
           {imageBadges}
           {showSaleBadge && savings > 0 && (

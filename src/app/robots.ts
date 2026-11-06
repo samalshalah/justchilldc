@@ -24,7 +24,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        allow: ["/", "/api/storage/objects/", "/api/storage/public/"],
         disallow: [
           "/admin",
           "/api",

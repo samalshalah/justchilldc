@@ -8,12 +8,8 @@ const serverBundlePaths = [
   resolve(root, ".open-next/server-functions/default/index.mjs"),
 ];
 
-const marker =
-  'function evalManifest(path2,shouldCache=!0,cache=sharedCache){if(path2=path2.replaceAll("\\\\","/"),';
-const shim =
-  'function evalManifest(path2,shouldCache=!0,cache=sharedCache){if(path2=path2.replaceAll("\\\\","/"),path2.endsWith(".next/server/middleware-manifest.json")||path2.endsWith("server/middleware-manifest.json"))return {version:3,middleware:{},functions:{},sortedMiddleware:[]};if(';
-const shimCheck =
-  'path2.endsWith(".next/server/middleware-manifest.json")||path2.endsWith("server/middleware-manifest.json")';
+const manifestMarker = /function evalManifest\(([$\w]+),[^)]*\)\{/;
+const shimCheck = "/* open-next-middleware-manifest */";
 const requireMarker =
   "function(x){if(typeof require<\"u\")return require.apply(this,arguments);throw Error('Dynamic require of \"'+x+'\" is not supported')}";
 const requireShim =
@@ -48,10 +44,12 @@ for (const filePath of serverBundlePaths) {
   }
 
   if (source.includes("function evalManifest") && !source.includes(shimCheck)) {
-    if (!source.includes(marker)) {
+    if (!manifestMarker.test(source)) {
       throw new Error(`Could not find OpenNext evalManifest marker to patch in ${filePath}.`);
     }
-    source = source.replace(marker, shim);
+    source = source.replace(manifestMarker, (signature, parameter) =>
+      `${signature}${shimCheck}${parameter}=${parameter}.replaceAll("\\\\","/");if(${parameter}.endsWith("server/middleware-manifest.json"))return {version:3,middleware:{},functions:{},sortedMiddleware:[]};`
+    );
     patched = true;
   }
 

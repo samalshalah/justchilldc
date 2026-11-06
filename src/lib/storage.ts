@@ -13,6 +13,7 @@ import "server-only";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { randomUUID } from "crypto";
 import { isLocalPreviewMode } from "@/lib/preview";
+import { imageVariantPath, type ImageVariantWidth } from "@/lib/image-variants";
 
 export class ObjectNotFoundError extends Error {
   constructor() {
@@ -105,7 +106,10 @@ async function putLocalObject({
   );
 }
 
-export async function getEntityObject(entityPath: string): Promise<R2ObjectBody> {
+export async function getEntityObject(
+  entityPath: string,
+  width?: ImageVariantWidth | null,
+): Promise<{ object: R2ObjectBody; variantWidth: ImageVariantWidth | null }> {
   const norm = entityPath.startsWith("/") ? entityPath : `/${entityPath}`;
   if (!norm.startsWith("/objects/")) throw new ObjectNotFoundError();
   const candidatePaths = [norm];
@@ -113,18 +117,22 @@ export async function getEntityObject(entityPath: string): Promise<R2ObjectBody>
   if (uploadAlias && uploadAlias[1] !== "products") {
     candidatePaths.push(`/objects/uploads/${uploadAlias[1]}`);
   }
+  // Variants are optional so older uploads remain available during backfills.
+  const lookupPaths = width
+    ? [...candidatePaths.map((path) => imageVariantPath(path, width)), ...candidatePaths]
+    : candidatePaths;
 
   if (isLocalPreviewMode()) {
-    for (const candidatePath of candidatePaths) {
+    for (const candidatePath of lookupPaths) {
       const object = await getLocalObject(normalizeKey(candidatePath));
-      if (object) return object;
+      if (object) return { object, variantWidth: candidatePath.endsWith(`.variants/${width}.webp`) ? width ?? null : null };
     }
     throw new ObjectNotFoundError();
   }
 
-  for (const candidatePath of candidatePaths) {
+  for (const candidatePath of lookupPaths) {
     const object = await mediaBucket().get(normalizeKey(candidatePath));
-    if (object) return object;
+    if (object) return { object, variantWidth: candidatePath.endsWith(`.variants/${width}.webp`) ? width ?? null : null };
   }
 
   throw new ObjectNotFoundError();
@@ -214,17 +222,22 @@ export async function putUploadedObject({
   objectPath,
   body,
   contentType,
+  width,
 }: {
   objectPath: string;
   body: ReadableStream | ArrayBuffer | null;
   contentType?: string | null;
+  width?: ImageVariantWidth | null;
 }): Promise<void> {
   if (!body) throw new Error("Missing upload body.");
   const norm = objectPath.startsWith("/") ? objectPath : `/${objectPath}`;
   if (!norm.startsWith("/objects/uploads/")) {
     throw new Error("Invalid upload object path.");
   }
-  const key = normalizeKey(norm);
+  if (width && contentType !== "image/webp") {
+    throw new Error("Image variants must use WebP.");
+  }
+  const key = normalizeKey(width ? imageVariantPath(norm, width) : norm);
   if (isLocalPreviewMode()) {
     await putLocalObject({ key, body, contentType });
     return;

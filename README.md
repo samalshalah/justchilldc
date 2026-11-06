@@ -34,3 +34,16 @@ Update all placeholder names in `wrangler.jsonc` before deploying.
 ## White-Label Notes
 
 The neutral fallback copy lives in `src/lib/defaults.ts`. Production storefronts should override those defaults from admin settings and deployment environment variables. Avoid hardcoding brand names, cities, domains, or market-specific legal language outside that file or the admin-managed settings.
+
+## Product Image Optimization
+
+Product photo uploads retain the original and generate 320, 640, and 1280 pixel WebP copies in the browser. The storefront selects a copy using responsive image markup. Missing copies fall back to the original, so optimization never requires changing product records or removing source photos.
+
+To optimize existing catalog photos and brand fallbacks, set `ADMIN_PASSWORD` in the process environment, then run:
+
+```sh
+node scripts/optimize-product-images.mjs --site=https://justchilldc.com
+node scripts/optimize-product-images.mjs --site=https://justchilldc.com --apply
+```
+
+The first command measures without uploading. The second uploads only missing copies. Use `--limit=5` for a small sample or `--force` to regenerate existing copies. The script requires an authenticated admin session, skips unsupported formats, and never overwrites originals.

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
+import { createUploadVariants } from "@/lib/optimize-upload";
+import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/image-variants";
 
 interface Props {
   value: string;
@@ -37,6 +39,8 @@ export function AdminImageUploader({
     setError(null);
     setUploading(true);
     try {
+      if (file.size > MAX_IMAGE_UPLOAD_BYTES) throw new Error("Choose an image smaller than 20 MB.");
+      const variants = folder === "products" ? await createUploadVariants(file) : [];
       // Get signed PUT URL from server
       const tokenRes = await fetch("/api/admin/upload-url", {
         method: "POST",
@@ -62,6 +66,17 @@ export function AdminImageUploader({
         body: file,
       });
       if (!putRes.ok) throw new Error(`Upload failed (HTTP ${putRes.status})`);
+
+      for (const variant of variants) {
+        const variantUrl = new URL(uploadUrl, window.location.origin);
+        variantUrl.searchParams.set("width", String(variant.width));
+        const response = await fetch(variantUrl, {
+          method: "PUT",
+          headers: { "Content-Type": "image/webp" },
+          body: variant.blob,
+        });
+        if (!response.ok) throw new Error(`Image optimization upload failed (HTTP ${response.status})`);
+      }
 
       onChange(objectPath);
     } catch (err) {
@@ -104,6 +119,7 @@ export function AdminImageUploader({
               </label>
               <button
                 type="button"
+                disabled={uploading}
                 onClick={() => onChange("")}
                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-red-400 hover:bg-red-950/40 rounded-lg transition-colors"
               >
@@ -131,6 +147,7 @@ export function AdminImageUploader({
           </p>
         </label>
       )}
+      {value && uploading && <Loader2 className="mt-2 h-5 w-5 animate-spin text-zinc-400" aria-label="Uploading image" />}
       {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
     </div>
   );

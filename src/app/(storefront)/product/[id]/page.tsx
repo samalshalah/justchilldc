@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
+import { ProductImage } from "@/components/ProductImage";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Leaf, ShieldCheck, Star, Truck, Info } from "lucide-react";
 import { getSiteSettings } from "@/lib/settings";
@@ -9,7 +9,6 @@ import { ProductCard } from "@/components/ProductCard";
 import { AddToCartButton } from "@/components/AddToCartButton";
 import {
   isProductLogoFallback,
-  isStorageImageUrl,
   productImageAlt,
   productImageFitClass,
   productImageUrl,
@@ -384,13 +383,11 @@ export default async function ProductDetailPage({
               {showImageGradient && !logoFallback && (
                 <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent z-10" />
               )}
-              <Image
+              <ProductImage
                 src={imageUrl}
                 alt={imageAlt}
-                fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                unoptimized={isStorageImageUrl(imageUrl)}
                 className={productImageFitClass(product)}
               />
             </div>

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { ProductImage } from "./ProductImage";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +20,6 @@ import { useCart } from "./CartContext";
 import { useSettings } from "./SettingsProvider";
 import {
   isProductLogoFallback,
-  isStorageImageUrl,
   productImageFitClass,
   productImageUrl,
 } from "@/lib/images";
@@ -189,6 +188,8 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
               <div className="space-y-4">
                 {items.map((item) => {
                   const imageUrl = productImageUrl({
+                    id: item.productId,
+                    name: item.name,
                     imageUrl: item.imageUrl,
                     imageType: item.imageType,
                     brandLogoUrl: item.brandLogoUrl,
@@ -210,12 +211,10 @@ export function CheckoutClient({ config, schedule }: CheckoutClientProps) {
                             : "bg-background"
                         }`}
                       >
-                        <Image
+                        <ProductImage
                           src={imageUrl}
                           alt={item.name}
-                          fill
                           sizes="64px"
-                          unoptimized={isStorageImageUrl(imageUrl)}
                           className={productImageFitClass(imageInput, "p-2")}
                         />
                       </div>

@@ -34,7 +34,7 @@ const config: NextConfig = {
         ],
       },
       {
-        source: "/api/:path*",
+        source: "/api/:path((?!storage(?:/|$)).*)",
         headers: [
           { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
         ],
@@ -65,4 +65,6 @@ const config: NextConfig = {
 export default config;
 
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+if (process.env.NODE_ENV === "development" && process.env.LOCAL_PREVIEW_MODE !== "1") {
+  void initOpenNextCloudflareForDev();
+}

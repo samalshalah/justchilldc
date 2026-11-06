@@ -13,9 +13,10 @@ import {
   findPublicObject,
   streamObject,
 } from "@/lib/storage";
+import { parseImageVariantWidth } from "@/lib/image-variants";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await params;
@@ -25,8 +26,18 @@ export async function GET(
 
   try {
     if (path[0] === "objects") {
-      const object = await getEntityObject("/" + path.join("/"));
-      return streamObject(object, { isPublic: true, cacheTtlSec: 604800 });
+      const requestedWidth = new URL(req.url).searchParams.get("width");
+      const width = parseImageVariantWidth(requestedWidth);
+      if (requestedWidth && !width) {
+        return NextResponse.json({ error: "Unsupported image width" }, { status: 400 });
+      }
+      const result = await getEntityObject("/" + path.join("/"), width);
+      const response = streamObject(result.object, {
+        isPublic: true,
+        cacheTtlSec: width && !result.variantWidth ? 60 : 604800,
+      });
+      response.headers.set("X-Image-Width", result.variantWidth ? String(result.variantWidth) : "original");
+      return response;
     }
     if (path[0] === "public") {
       const filename = path.slice(1).join("/");

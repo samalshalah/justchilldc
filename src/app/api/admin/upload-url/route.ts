@@ -9,6 +9,8 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createHmac } from "crypto";
 import { getUploadTarget, putUploadedObject } from "@/lib/storage";
+import { MAX_IMAGE_UPLOAD_BYTES, parseImageVariantWidth } from "@/lib/image-variants";
+import { getProducts } from "@/lib/data";
 
 const COOKIE_NAME = "jc_admin_session";
 const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 7;
@@ -54,6 +56,23 @@ export async function POST(req: Request) {
   }
 }
 
+export async function GET() {
+  if (!(await isAdmin())) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+  }
+  const products = await getProducts({});
+  const paths = new Set<string>();
+  for (const product of products) {
+    for (const path of [product.imageUrl, product.brandLogoUrl]) {
+      const normalized = path?.replace(/^\/api\/storage/, "");
+      if (normalized?.startsWith("/objects/uploads/")) paths.add(normalized);
+    }
+  }
+  return NextResponse.json({ paths: [...paths] }, {
+    headers: { "Cache-Control": "private, no-store" },
+  });
+}
+
 export async function PUT(req: Request) {
   if (!(await isAdmin())) {
     return NextResponse.json({ error: "Not authorized" }, { status: 401 });
@@ -64,7 +83,18 @@ export async function PUT(req: Request) {
     if (!objectPath) {
       return NextResponse.json({ error: "Missing objectPath" }, { status: 400 });
     }
+    const requestedWidth = url.searchParams.get("width");
+    const width = parseImageVariantWidth(requestedWidth);
+    if (requestedWidth && !width) {
+      return NextResponse.json({ error: "Unsupported image width" }, { status: 400 });
+    }
+    if (width && req.headers.get("content-type") !== "image/webp") {
+      return NextResponse.json({ error: "Image variants must use WebP" }, { status: 415 });
+    }
     const body = await req.arrayBuffer();
+    if (body.byteLength > MAX_IMAGE_UPLOAD_BYTES) {
+      return NextResponse.json({ error: "Maximum image size is 20 MB" }, { status: 413 });
+    }
     if (body.byteLength === 0) {
       return NextResponse.json({ error: "Missing upload body" }, { status: 400 });
     }
@@ -72,6 +102,7 @@ export async function PUT(req: Request) {
       objectPath,
       body,
       contentType: req.headers.get("content-type"),
+      width,
     });
     return NextResponse.json({ ok: true });
   } catch (err) {
