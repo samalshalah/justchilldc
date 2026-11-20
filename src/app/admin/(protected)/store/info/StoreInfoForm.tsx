@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { Field, Input, Textarea, Checkbox } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 import type { SiteSettings } from "@/lib/types";
 
 type StoreSlice = NonNullable<SiteSettings["store"]>;
@@ -48,10 +49,12 @@ export function StoreInfoForm({
   const [location, setLocation] = useState<LocationSlice>(initLocation);
   const [contact, setContact] = useState<ContactSlice>(initContact);
   const [pending, startTransition] = useTransition();
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSave = () => {
+    if (imageUploading) return;
     setError(null);
     setSaved(false);
     startTransition(async () => {
@@ -119,13 +122,15 @@ export function StoreInfoForm({
           <Field label="Logo (light theme)">
             <AdminImageUploader
               value={store.logo_light ?? ""}
-              onChange={(v) => setStore({ ...store, logo_light: v })}
+              onChange={(v) => setStore((current) => ({ ...current, logo_light: v }))}
+              onUploadingChange={onUploadingChange}
             />
           </Field>
           <Field label="Logo (dark theme)">
             <AdminImageUploader
               value={store.logo_dark ?? ""}
-              onChange={(v) => setStore({ ...store, logo_dark: v })}
+              onChange={(v) => setStore((current) => ({ ...current, logo_dark: v }))}
+              onUploadingChange={onUploadingChange}
             />
           </Field>
           <Field label="Instagram URL">
@@ -259,7 +264,7 @@ export function StoreInfoForm({
         <button
           type="button"
           onClick={onSave}
-          disabled={pending}
+          disabled={pending || imageUploading}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg disabled:opacity-60"
         >
           {pending && <Loader2 className="w-4 h-4 animate-spin" />}

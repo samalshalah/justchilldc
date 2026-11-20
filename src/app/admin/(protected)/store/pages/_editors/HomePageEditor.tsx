@@ -6,6 +6,7 @@ import type { SiteSettings } from "@/lib/types";
 import { saveSettingSlice } from "@/lib/admin-settings-client";
 import { Field, Input, Textarea, Checkbox, Select } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 
 type Sections = NonNullable<SiteSettings["homepage_sections"]>;
 
@@ -55,6 +56,7 @@ export function HomePageEditor({ settings }: { settings: SiteSettings }) {
     settings.homepage_section_order ?? DEFAULT_ORDER
   );
   const [pending, startTransition] = useTransition();
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,6 +76,7 @@ export function HomePageEditor({ settings }: { settings: SiteSettings }) {
   };
 
   const onSave = () => {
+    if (imageUploading) return;
     setError(null);
     setSaved(false);
     startTransition(async () => {
@@ -237,6 +240,7 @@ export function HomePageEditor({ settings }: { settings: SiteSettings }) {
             hint="Replaces the default. ~1920×900 recommended."
           >
             <AdminImageUploader
+              onUploadingChange={onUploadingChange}
               value={sections.hero?.bannerImageUrl ?? ""}
               onChange={(v) => update("hero", { bannerImageUrl: v })}
             />
@@ -458,7 +462,7 @@ export function HomePageEditor({ settings }: { settings: SiteSettings }) {
         </section>
       )}
 
-      <SaveBar pending={pending} saved={saved} error={error} onSave={onSave} />
+      <SaveBar pending={pending || imageUploading} saved={saved} error={error} onSave={onSave} />
     </div>
   );
 }

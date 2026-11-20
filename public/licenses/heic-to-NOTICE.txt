@@ -1,0 +1,8 @@
+HEIC photo conversion uses heic-to 1.6.7 by Hopper Gee, under LGPL-3.0.
+Unmodified source and build instructions: https://github.com/hoppergee/heic-to/tree/v1.6.7
+Package source: https://www.npmjs.com/package/heic-to/v/1.6.7
+License: /licenses/heic-to-LICENSE.txt
+
+heic-to includes libheif and libde265. Upstream source and licensing:
+https://github.com/strukturag/libheif
+https://github.com/strukturag/libde265

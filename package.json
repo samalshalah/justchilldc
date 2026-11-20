@@ -43,6 +43,7 @@
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.2",
     "framer-motion": "^11.18.0",
+    "heic-to": "1.6.7",
     "lucide-react": "^0.469.0",
     "next": "^15.5.29",
     "pg": "^8.16.3",

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
-import { createUploadVariants } from "@/lib/optimize-upload";
-import { MAX_IMAGE_UPLOAD_BYTES } from "@/lib/image-variants";
+import { useEffect, useRef, useState } from "react";
+import { Upload, X, Loader2, RotateCw } from "lucide-react";
+import { PRODUCT_IMAGE_ACCEPT } from "@/lib/optimize-upload";
+import { uploadAdminImage } from "@/lib/upload-image";
 
 interface Props {
   value: string;
@@ -36,63 +36,49 @@ export function AdminImageUploader({
 }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+  const [retryFile, setRetryFile] = useState<File | null>(null);
+  const busy = useRef(false);
+  const controller = useRef<AbortController | null>(null);
+  const notify = useRef(onUploadingChange);
+  notify.current = onUploadingChange;
+  useEffect(() => () => {
+    controller.current?.abort();
+    if (busy.current) { busy.current = false; notify.current?.(false); }
+  }, []);
 
   const handleFile = async (file: File) => {
+    if (busy.current) return;
+    busy.current = true;
+    controller.current = new AbortController();
     setError(null);
+    setWarning(null);
+    setRetryFile(null);
     setUploading(true);
     onUploadingChange?.(true);
     try {
-      if (file.size > MAX_IMAGE_UPLOAD_BYTES) throw new Error("Choose an image smaller than 20 MB.");
-      const variants = folder === "products" ? await createUploadVariants(file) : [];
-      // Get signed PUT URL from server
-      const tokenRes = await fetch("/api/admin/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: file.name,
-          contentType: file.type,
-          nameHint: fileNameBase,
-          folder,
-          entityId,
-        }),
+      const result = await uploadAdminImage(file, {
+        fileNameBase, folder, entityId, signal: controller.current.signal, onUploaded: onChange,
       });
-      if (!tokenRes.ok) {
-        const j = await tokenRes.json().catch(() => ({}));
-        throw new Error(j.error || "Could not get upload URL");
-      }
-      const { uploadUrl, objectPath } = await tokenRes.json();
-
-      // PUT the file through the admin upload proxy into object storage.
-      const putRes = await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!putRes.ok) throw new Error(`Upload failed (HTTP ${putRes.status})`);
-
-      for (const variant of variants) {
-        const variantUrl = new URL(uploadUrl, window.location.origin);
-        variantUrl.searchParams.set("width", String(variant.width));
-        const response = await fetch(variantUrl, {
-          method: "PUT",
-          headers: { "Content-Type": "image/webp" },
-          body: variant.blob,
-        });
-        if (!response.ok) throw new Error(`Image optimization upload failed (HTTP ${response.status})`);
-      }
-
-      onChange(objectPath);
+      if (!controller.current.signal.aborted) setWarning(result.warning);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      if (!controller.current.signal.aborted) {
+        setError(err instanceof Error ? err.message : "Upload failed");
+        setRetryFile(file);
+      }
     } finally {
-      setUploading(false);
-      onUploadingChange?.(false);
+      if (busy.current) {
+        busy.current = false;
+        setUploading(false);
+        notify.current?.(false);
+      }
     }
   };
 
   const onInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    e.currentTarget.value = "";
+    if (file) void handleFile(file);
   };
 
   return (
@@ -116,7 +102,7 @@ export function AdminImageUploader({
                 <input
                   type="file"
                   className="hidden"
-                  accept="image/*"
+                  accept={folder === "products" ? PRODUCT_IMAGE_ACCEPT : "image/*,.heic,.heif"}
                   onChange={onInput}
                   disabled={uploading}
                 />
@@ -137,7 +123,7 @@ export function AdminImageUploader({
           <input
             type="file"
             className="hidden"
-            accept="image/*"
+            accept={folder === "products" ? PRODUCT_IMAGE_ACCEPT : "image/*,.heic,.heif"}
             onChange={onInput}
             disabled={uploading}
           />
@@ -152,7 +138,14 @@ export function AdminImageUploader({
         </label>
       )}
       {value && uploading && <Loader2 className="mt-2 h-5 w-5 animate-spin text-zinc-400" aria-label="Uploading image" />}
-      {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
+      {warning && <p role="status" className="text-xs text-amber-600 mt-2">{warning}</p>}
+      {error && <p role="alert" className="text-xs text-red-400 mt-2">{error}</p>}
+      {retryFile && !uploading && (
+        <button type="button" onClick={() => void handleFile(retryFile)}
+          className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-lg border border-zinc-400 px-3 text-sm">
+          <RotateCw className="h-4 w-4" /> Retry upload
+        </button>
+      )}
     </div>
   );
 }

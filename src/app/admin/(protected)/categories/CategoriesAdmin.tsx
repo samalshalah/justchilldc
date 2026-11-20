@@ -7,6 +7,7 @@ import { upsertCategory, deleteCategory } from "@/lib/admin-mutations-client";
 import type { Category } from "@/lib/data";
 import { Field, Input, Textarea } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 import { categoryImageUrl } from "@/lib/images";
 
 export function CategoriesAdmin({ categories }: { categories: Category[] }) {
@@ -109,10 +110,12 @@ function CategoryDialog({
   const [name, setName] = useState(initial?.name ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const onSave = () => {
+    if (imageUploading) return;
     if (!name.trim()) {
       setError("Name is required");
       return;
@@ -166,7 +169,7 @@ function CategoryDialog({
             />
           </Field>
           <Field label="Image">
-            <AdminImageUploader value={imageUrl} onChange={setImageUrl} />
+            <AdminImageUploader value={imageUrl} onChange={setImageUrl} onUploadingChange={onUploadingChange} />
           </Field>
           {error && (
             <p className="text-sm text-red-400 bg-red-950/40 border border-red-900 rounded-lg p-2.5">
@@ -177,7 +180,7 @@ function CategoryDialog({
             <button
               type="button"
               onClick={onSave}
-              disabled={pending}
+              disabled={pending || imageUploading}
               className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg flex items-center gap-2 disabled:opacity-60"
             >
               {pending && <Loader2 className="w-4 h-4 animate-spin" />}

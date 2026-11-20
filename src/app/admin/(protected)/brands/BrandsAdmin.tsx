@@ -7,6 +7,7 @@ import { upsertBrand, deleteBrand } from "@/lib/admin-mutations-client";
 import type { Brand } from "@/lib/data";
 import { Field, Input, Textarea, Checkbox } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 import { logoUrl as storageLogoUrl } from "@/lib/images";
 
 export function BrandsAdmin({ brands }: { brands: Brand[] }) {
@@ -117,11 +118,13 @@ function BrandDialog({
   const [description, setDescription] = useState(initial?.description ?? "");
   const [website, setWebsite] = useState(initial?.website ?? "");
   const [logoUrl, setLogoUrl] = useState(initial?.logoUrl ?? "");
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   const onSave = () => {
+    if (imageUploading) return;
     if (!name.trim()) {
       setError("Name is required");
       return;
@@ -185,7 +188,7 @@ function BrandDialog({
             />
           </Field>
           <Field label="Logo">
-            <AdminImageUploader value={logoUrl} onChange={setLogoUrl} />
+            <AdminImageUploader value={logoUrl} onChange={setLogoUrl} onUploadingChange={onUploadingChange} />
           </Field>
           <Checkbox
             label="Featured brand"
@@ -201,7 +204,7 @@ function BrandDialog({
             <button
               type="button"
               onClick={onSave}
-              disabled={pending}
+              disabled={pending || imageUploading}
               className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg flex items-center gap-2 disabled:opacity-60"
             >
               {pending && <Loader2 className="w-4 h-4 animate-spin" />}

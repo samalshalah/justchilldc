@@ -6,10 +6,12 @@ import type { SiteSettings, AboutConfig } from "@/lib/types";
 import { saveSettingSlice } from "@/lib/admin-settings-client";
 import { Field, Input, Textarea, Checkbox } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 
 export function AboutPageEditor({ settings }: { settings: SiteSettings }) {
   const [about, setAbout] = useState<AboutConfig>(settings.about ?? {});
   const [pending, startTransition] = useTransition();
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,6 +19,7 @@ export function AboutPageEditor({ settings }: { settings: SiteSettings }) {
     setAbout((a) => ({ ...a, ...patch }));
 
   const onSave = () => {
+    if (imageUploading) return;
     setError(null);
     setSaved(false);
     startTransition(async () => {
@@ -88,6 +91,7 @@ export function AboutPageEditor({ settings }: { settings: SiteSettings }) {
         </Field>
         <Field label="Hero image">
           <AdminImageUploader
+            onUploadingChange={onUploadingChange}
             value={about.imageUrl ?? ""}
             onChange={(v) => update({ imageUrl: v })}
           />
@@ -236,7 +240,7 @@ export function AboutPageEditor({ settings }: { settings: SiteSettings }) {
         )}
       </section>
 
-      <SaveBar pending={pending} saved={saved} error={error} onSave={onSave} />
+      <SaveBar pending={pending || imageUploading} saved={saved} error={error} onSave={onSave} />
     </div>
   );
 }

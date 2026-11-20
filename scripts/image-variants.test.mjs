@@ -23,7 +23,18 @@ const storage = await compile("src/lib/storage.ts", "storage", (source) => sourc
   .replace('import { isLocalPreviewMode } from "@/lib/preview";', "const isLocalPreviewMode = () => false;")
   .replace('from "@/lib/image-variants"', 'from "./image-variants.mjs"'));
 const upload = await compile("src/lib/optimize-upload.ts", "optimize-upload", (source) => source
-  .replace('from "./image-variants"', 'from "./image-variants.mjs"'));
+  .replace('from "./image-variants"', 'from "./image-variants.mjs"')
+  .replace('await import("heic-to/csp")', '{ heicTo: globalThis.heicTestConverter }'));
+const flow = await compile("src/lib/upload-image.ts", "upload-image", (source) => source
+  .replace('from "./optimize-upload"', 'from "./optimize-upload.mjs"'));
+
+function mockImage(width = 1000, height = 1500) {
+  globalThis.Image = class {
+    naturalWidth = width;
+    naturalHeight = height;
+    set src(value) { queueMicrotask(() => this.onload()); }
+  };
+}
 
 test("variant URLs preserve descriptive paths and existing query parameters", () => {
   assert.equal(variants.imageVariantUrl("/api/storage/objects/uploads/fuel-biscuits.jpg?version=2", 320),
@@ -69,17 +80,18 @@ test("variant writes never replace the original key", async () => {
 test("browser upload generates three WebP sizes without enlarging small photos", async () => {
   const sizes = [];
   let closed = false;
-  globalThis.createImageBitmap = async () => ({ width: 1000, height: 1500, close() { closed = true; } });
+  mockImage();
+  globalThis.createImageBitmap = async (_file, options) => ({ width: options.resizeWidth, height: options.resizeHeight, close() { closed = true; } });
   globalThis.document = { createElement: () => ({ width: 0, height: 0,
     getContext: () => ({ drawImage() {} }),
     toBlob(callback, type) { sizes.push([this.width, this.height]); callback(new Blob(["webp"], { type })); },
   }) };
   const result = await upload.createUploadVariants(new File(["jpeg"], "photo.jpg", { type: "image/jpeg" }));
-  assert.deepEqual(sizes, [[320, 480], [640, 960], [1000, 1500]]);
+  assert.deepEqual(sizes, [[320, 480], [640, 960], [853, 1280]]);
   assert.deepEqual(result.map((item) => item.width), [320, 640, 1280]);
   assert.ok(result.every((item) => item.blob.type === "image/webp"));
   assert.equal(closed, true);
-  await assert.rejects(upload.createUploadVariants(new File(["gif"], "animated.gif", { type: "image/gif" })), /product photo/);
+  assert.deepEqual(await upload.createUploadVariants(new File(["gif"], "animated.gif", { type: "image/gif" })), []);
 });
 
 test("product saves wait until image uploads finish on desktop and mobile", async () => {
@@ -89,5 +101,74 @@ test("product saves wait until image uploads finish on desktop and mobile", asyn
   assert.equal([...form.matchAll(/disabled=\{pending \|\| imageUploading\}/g)].length, 2);
   const uploader = await readFile("src/components/AdminImageUploader.tsx", "utf8");
   assert.match(uploader, /onUploadingChange\?\.\(true\)/);
-  assert.match(uploader, /finally \{[\s\S]*onUploadingChange\?\.\(false\)/);
+  assert.match(uploader, /finally \{[\s\S]*notify.current\?\.\(false\)/);
+  assert.match(uploader, /e.currentTarget.value = ""/);
+  assert.match(uploader, /Retry upload/);
+});
+
+test("HEIC conversion normalizes the filename and MIME before upload", async () => {
+  globalThis.heicTestConverter = async () => new Blob(["converted"], { type: "image/jpeg" });
+  const prepared = await upload.prepareUploadFile(new File(["heic"], "phone.HEIC", { type: "image/heic" }));
+  assert.equal(prepared.name, "phone.jpg");
+  assert.equal(prepared.type, "image/jpeg");
+  assert.equal((await upload.prepareUploadFile(new File(["jpeg"], "photo.jpg"))).type, "image/jpeg");
+});
+
+test("48 megapixel photos are resized before thumbnail canvas allocation", async () => {
+  mockImage(8000, 6000);
+  let decoded;
+  globalThis.createImageBitmap = async (_file, options) => {
+    decoded = options;
+    return { width: options.resizeWidth, height: options.resizeHeight, close() {} };
+  };
+  await upload.createUploadVariants(new File(["jpeg"], "large.jpg", { type: "image/jpeg" }));
+  assert.equal(decoded.resizeWidth, 1280);
+  assert.equal(decoded.resizeHeight, 960);
+});
+
+test("HTML image fallback works when createImageBitmap is unavailable", async () => {
+  mockImage(600, 400);
+  globalThis.createImageBitmap = undefined;
+  const result = await upload.createUploadVariants(new File(["jpeg"], "photo.jpg", { type: "image/jpeg" }));
+  assert.equal(result.length, 3);
+});
+
+test("failed thumbnail delivery preserves the successfully uploaded photo", async () => {
+  mockImage();
+  let selected;
+  let failures = 0;
+  globalThis.fetch = async (url, init) => {
+    if (init.method === "POST") return Response.json({ uploadUrl: "/api/admin/upload-url?objectPath=photo.jpg", objectPath: "/objects/uploads/photo.jpg" });
+    if (url.includes("width=640")) { failures++; throw new TypeError("Failed to fetch"); }
+    return new Response(null, { status: 200 });
+  };
+  const result = await flow.uploadAdminImage(new File(["jpeg"], "photo.jpg", { type: "image/jpeg" }), {
+    folder: "products", onUploaded: (value) => { selected = value; },
+  });
+  assert.equal(selected, "/objects/uploads/photo.jpg");
+  assert.match(result.warning, /Photo uploaded/);
+  assert.equal(failures, 3);
+});
+
+test("primary failures are retried, while expired sessions fail immediately", async () => {
+  let attempts = 0;
+  globalThis.fetch = async () => { attempts++; return new Response(null, { status: attempts < 3 ? 503 : 200 }); };
+  assert.equal((await flow.uploadWithRetry("/upload", { method: "PUT" })).status, 200);
+  assert.equal(attempts, 3);
+  attempts = 0;
+  globalThis.fetch = async () => { attempts++; return new Response(null, { status: 401 }); };
+  await assert.rejects(flow.uploadWithRetry("/upload", { method: "PUT" }), /session expired/);
+  assert.equal(attempts, 1);
+});
+
+test("all image-editing forms guard saving during uploads", async () => {
+  for (const file of [
+    "brands/BrandsAdmin.tsx", "categories/CategoriesAdmin.tsx", "blog/BlogForm.tsx",
+    "store/info/StoreInfoForm.tsx", "store/pages/_editors/HomePageEditor.tsx", "store/pages/_editors/AboutPageEditor.tsx",
+  ]) {
+    const source = await readFile(`src/app/admin/(protected)/${file}`, "utf8");
+    assert.match(source, /if \(imageUploading\) return;/, file);
+    assert.match(source, /onUploadingChange=\{onUploadingChange\}/, file);
+    assert.match(source, /pending \|\| imageUploading/, file);
+  }
 });

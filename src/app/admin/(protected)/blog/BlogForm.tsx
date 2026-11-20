@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { upsertBlogPost } from "@/lib/admin-mutations-client";
 import { Checkbox, Field, Input, Textarea } from "@/components/AdminFormControls";
 import { AdminImageUploader } from "@/components/AdminImageUploader";
+import { useImageUploads } from "@/components/useImageUploads";
 import type { BlogPost } from "@/lib/blog";
 
 function tagsToText(tags: string): string {
@@ -30,9 +31,11 @@ export function BlogForm({ post }: { post?: BlogPost }) {
   const [category, setCategory] = useState(post?.category ?? "General");
   const [tags, setTags] = useState(post ? tagsToText(post.tags) : "");
   const [featuredImageUrl, setFeaturedImageUrl] = useState(post?.featuredImageUrl ?? "");
+  const { imageUploading, onUploadingChange } = useImageUploads();
   const [published, setPublished] = useState(post?.published ?? false);
 
   const onSave = () => {
+    if (imageUploading) return;
     setError(null);
     startTransition(async () => {
       try {
@@ -93,7 +96,7 @@ export function BlogForm({ post }: { post?: BlogPost }) {
           <Textarea rows={2} value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} />
         </Field>
         <Field label="Featured image">
-          <AdminImageUploader value={featuredImageUrl} onChange={setFeaturedImageUrl} />
+          <AdminImageUploader value={featuredImageUrl} onChange={setFeaturedImageUrl} onUploadingChange={onUploadingChange} />
         </Field>
         <Checkbox
           label="Published"
@@ -111,7 +114,7 @@ export function BlogForm({ post }: { post?: BlogPost }) {
         <button
           type="button"
           onClick={onSave}
-          disabled={pending}
+          disabled={pending || imageUploading}
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-semibold rounded-lg disabled:opacity-60"
         >
           {pending && <Loader2 className="w-4 h-4 animate-spin" />}
